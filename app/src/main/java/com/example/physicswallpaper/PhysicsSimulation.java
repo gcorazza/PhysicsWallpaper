@@ -23,10 +23,9 @@ public class PhysicsSimulation {
 
     private World world;
     private List<WallpaperBody> drawBodys= new ArrayList<>();
-    private int step;
 
     List<WorldShowState> worldBuffer =new ArrayList<>();
-    private int bufferedStatesCount = 100;
+    private int bufferedStatesCount = 20;
 
     public PhysicsSimulation() {
         world = new World(new Vec2(0,-100));
@@ -57,6 +56,7 @@ public class PhysicsSimulation {
         bodyDef.position.set((2+random.nextFloat()*5), (2+random.nextFloat()*5));
         Body body = world.createBody(bodyDef);
         body.setBullet(true);
+        body.setSleepingAllowed(false);
         world.getBodyList();
         body.createFixture(polygonShape, 5.0f);
         WallpaperBody drawBody = new RectWallpaperBody(body,Color.HSVToColor(hsv),xr,yr);
@@ -64,14 +64,12 @@ public class PhysicsSimulation {
     }
 
     public void setGravity(Vec2 gravity) {
-        //world.setGravity(gravity);
+        world.setGravity(gravity);
     }
 
     public void drawAndUpdate(Canvas canvas, float updateIntervallms) {
-        long stime=System.currentTimeMillis();
         worldBuffer.add(new WorldShowState(getObjectShowData()));
         world.step(updateIntervallms/1000,5,5);
-        Log.d("d",step++ +" : "+(System.currentTimeMillis()-stime));
 
 
         canvas.drawColor(Color.BLACK);
