@@ -18,9 +18,8 @@ public class RectWallpaperBody extends WallpaperBody {
         this.hr = h;
     }
 
-    public void draw(Canvas canvas) {
+    public void draw(Canvas canvas, Transform transform) {
         canvas.save();
-        Transform transform = body.getTransform();
         canvas.translate(transform.p.x, transform.p.y);
         canvas.rotate((float) (transform.q.getAngle()*180/PI)); //angle??
         canvas.drawRect( new RectF(-wr,-hr, wr, hr), innerPaint);

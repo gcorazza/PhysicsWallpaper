@@ -5,9 +5,11 @@ import android.graphics.Color;
 import android.graphics.Paint;
 
 
+import org.jbox2d.common.Rot;
+import org.jbox2d.common.Transform;
 import org.jbox2d.dynamics.Body;
 
-public abstract class WallpaperBody{
+public abstract class WallpaperBody extends Rot {
     protected final Paint innerPaint = new Paint();
     protected final Paint outerPaint = new Paint();
     protected final Body body;
@@ -39,6 +41,5 @@ public abstract class WallpaperBody{
                 Math.min(b,255));
     }
 
-
-    public abstract void draw(Canvas canvas);
+    public abstract void draw(Canvas canvas, Transform transform);
 }

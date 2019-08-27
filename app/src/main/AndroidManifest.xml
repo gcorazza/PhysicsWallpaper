@@ -16,16 +16,20 @@
         <service
             android:name=".PhysicsWallpaperService"
             android:label="PhysicsWallpaper"
-            android:permission="android.permission.BIND_WALLPAPER">
+            android:permission="android.permission.BIND_WALLPAPER"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
             </intent-filter>
 
             <meta-data
                 android:name="android.service.wallpaper"
-                android:resource="@xml/wallpaperphysics" />
+                android:resource="@xml/wallpaperphysics"/>
         </service>
-        <activity android:name="SetWallpaperActivity">
+        <activity
+            android:name="SetWallpaperActivity"
+            android:exported="true">
+
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -36,8 +40,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
-                    android:scheme="http"
-                    android:host="bla.com" />
+                    android:host="bla.com"
+                    android:scheme="http" />
             </intent-filter>
         </activity>
     </application>

@@ -6,8 +6,8 @@ import android.graphics.Color;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
-import org.jbox2d.collision.TimeOfImpact;
 import org.jbox2d.collision.shapes.PolygonShape;
+import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
@@ -25,11 +25,12 @@ public class PhysicsSimulation {
     private List<WallpaperBody> drawBodys= new ArrayList<>();
     private int step;
 
+    List<WorldShowState> worldBuffer =new ArrayList<>();
+    private int bufferedStatesCount = 100;
+
     public PhysicsSimulation() {
         world = new World(new Vec2(0,-100));
-        long rand = 1722243646;
-        System.out.println("rand = " + rand);
-        Random random = new Random(rand);
+        Random random = new Random();
         addRandomBody(random);
         addRandomBody(random);
         addRandomBody(random);
@@ -55,6 +56,8 @@ public class PhysicsSimulation {
         bodyDef.linearVelocity= new Vec2(0,10);
         bodyDef.position.set((2+random.nextFloat()*5), (2+random.nextFloat()*5));
         Body body = world.createBody(bodyDef);
+        body.setBullet(true);
+        world.getBodyList();
         body.createFixture(polygonShape, 5.0f);
         WallpaperBody drawBody = new RectWallpaperBody(body,Color.HSVToColor(hsv),xr,yr);
         drawBodys.add(drawBody);
@@ -66,20 +69,31 @@ public class PhysicsSimulation {
 
     public void drawAndUpdate(Canvas canvas, float updateIntervallms) {
         long stime=System.currentTimeMillis();
-        for (int i = 0; i < drawBodys.size(); i++) {
-            Log.d("d","drawBodys.get(i).body.m_force = " + drawBodys.get(i).body.m_force);
-        }
-        if (step==33){
-            System.out.printf("");
-        }
+        worldBuffer.add(new WorldShowState(getObjectShowData()));
         world.step(updateIntervallms/1000,5,5);
         Log.d("d",step++ +" : "+(System.currentTimeMillis()-stime));
 
+
         canvas.drawColor(Color.BLACK);
-        for (int i = 0; i < drawBodys.size(); i++) {
-            WallpaperBody wallpaperBody = drawBodys.get(i);
-            wallpaperBody.draw(canvas);
+
+        if (worldBuffer.size()> bufferedStatesCount){
+            WorldShowState toShow = worldBuffer.remove(0);
+            for (ShowObjectData objectShowDatum : toShow.objectShowData) {
+                Transform transform = objectShowDatum.getTransform();
+                objectShowDatum.getDrawBody().draw(canvas,transform);
+            }
         }
+
+    }
+
+    private List<ShowObjectData> getObjectShowData() {
+        List<ShowObjectData> data= new ArrayList<>();
+
+        for (WallpaperBody drawBody : drawBodys) {
+            data.add(new ShowObjectData(new Transform(drawBody.body.getTransform()), drawBody));
+        }
+
+        return data;
     }
 
     public void setWalls(){

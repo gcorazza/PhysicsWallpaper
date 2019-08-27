@@ -112,6 +112,7 @@ public class PhysicsWallpaperService extends WallpaperService {
                     physicsSimulation.drawAndUpdate(canvas, updateIntervallms);
                 }
             } finally {
+                holder.isCreating();
                 if (canvas != null)
                     holder.unlockCanvasAndPost(canvas);
             }
