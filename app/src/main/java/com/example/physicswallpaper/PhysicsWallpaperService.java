@@ -17,6 +17,9 @@ import android.view.SurfaceHolder;
 
 import org.jbox2d.common.Vec2;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 public class PhysicsWallpaperService extends WallpaperService {
     @Override
@@ -25,44 +28,49 @@ public class PhysicsWallpaperService extends WallpaperService {
     }
 
     private class PhysicsWallpaperEngine extends Engine {
-        private final Handler handler = new Handler();
-        private final Runnable drawRunner = new Runnable() {
+        private final Timer physicsTimer = new Timer();
+        private final Runnable draw = new Runnable() {
             @Override
             public void run() {
                 draw();
             }
-
         };
-        int height,width;
+        Handler handler = new Handler();
         private boolean visible = true;
         private boolean touchEnabled;
-        private PhysicsSimulation physicsSimulation = new PhysicsSimulation();
-        private int updateIntervallms = 20;
-        private Vec2 gravity= new Vec2();
+        private int FPS = 10;
+        private PhysicsSimulation physicsSimulation = new PhysicsSimulation(40);
+        private Vec2 gravity = new Vec2();
 
         public PhysicsWallpaperEngine() {
             SharedPreferences prefs = PreferenceManager
                     .getDefaultSharedPreferences(PhysicsWallpaperService.this);
             touchEnabled = prefs.getBoolean("touch", true);
-            handler.post(drawRunner);
+            handler.post(draw);
+            physicsTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    physicsSimulation.update();
+                }
+            },0,1000/FPS);
 
             SensorManager sensorManager;
             Sensor sensor;
             sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
 //            if (sensorManager != null) {
-                sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+            sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
 
-                sensorManager.registerListener(new SensorEventListener() {
-                    @Override
-                    public void onSensorChanged(SensorEvent sensorEvent) {
-                        gravity = new Vec2(-sensorEvent.values[0],-sensorEvent.values[1]).mul(10);
-                    }
+            sensorManager.registerListener(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(SensorEvent sensorEvent) {
+                    gravity = new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(10);
+                }
 
-                    @Override
-                    public void onAccuracyChanged(Sensor sensor, int i) {
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int i) {
 
-                    }
-                }, sensor, 10000);
+                }
+            }, sensor, 10000);
 //            }
         }
 
@@ -70,38 +78,30 @@ public class PhysicsWallpaperService extends WallpaperService {
         @Override
         public void onVisibilityChanged(boolean visible) {
             this.visible = visible;
-            if (visible) {
-                handler.post(drawRunner);
-            } else {
-                handler.removeCallbacks(drawRunner);
-            }
         }
 
         @Override
         public void onSurfaceDestroyed(SurfaceHolder holder) {
             super.onSurfaceDestroyed(holder);
             this.visible = false;
-            handler.removeCallbacks(drawRunner);
         }
 
-        @Override
-        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            this.width = width;
-            this.height = height;
-            super.onSurfaceChanged(holder, format, width, height);
-        }
 
         @Override
         public void onTouchEvent(MotionEvent event) {
             if (touchEnabled) {
                 float x = event.getX();
                 float y = event.getY();
-                physicsSimulation.touch(x,y);
+                physicsSimulation.touch(x, y);
                 super.onTouchEvent(event);
             }
         }
 
         private void draw() {
+            handler.postDelayed(draw, (long) (1000f/FPS));
+            if (!visible)
+                return;
+
             SurfaceHolder holder = getSurfaceHolder();
             Canvas canvas = null;
             try {
@@ -109,23 +109,20 @@ public class PhysicsWallpaperService extends WallpaperService {
                 if (canvas != null) {
                     setCanvasToCmScaleAndSetLetCornerAs00(canvas);
                     physicsSimulation.setGravity(gravity);
-                    physicsSimulation.drawAndUpdate(canvas, updateIntervallms);
+                    physicsSimulation.draw(canvas);
                 }
             } finally {
                 holder.isCreating();
-                if (canvas != null)
+                if (canvas != null) {
                     holder.unlockCanvasAndPost(canvas);
-            }
-            handler.removeCallbacks(drawRunner);
-            if (visible) {
-                handler.postDelayed(drawRunner, updateIntervallms);
+                }
             }
         }
 
         private void setCanvasToCmScaleAndSetLetCornerAs00(Canvas canvas) {
             DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-            canvas.translate(0,displayMetrics.heightPixels);
-            canvas.scale(displayMetrics.xdpi/2.54f, -displayMetrics.ydpi/2.54f);
+            canvas.translate(0, displayMetrics.heightPixels);
+            canvas.scale(displayMetrics.xdpi / 2.54f, -displayMetrics.ydpi / 2.54f);
         }
 
     }

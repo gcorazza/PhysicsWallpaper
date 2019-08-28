@@ -15,6 +15,7 @@ import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.World;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -22,13 +23,18 @@ import java.util.Random;
 public class PhysicsSimulation {
 
     private World world;
-    private List<WallpaperBody> drawBodys= new ArrayList<>();
+    private List<WallpaperBody> drawBodys = Collections.synchronizedList(new ArrayList<WallpaperBody>());
 
-    List<WorldShowState> worldBuffer =new ArrayList<>();
-    private int bufferedStatesCount = 20;
+    List<WorldShowState> worldBuffer = new ArrayList<>();
 
-    public PhysicsSimulation() {
-        world = new World(new Vec2(0,-100));
+    private float FPS;
+    private float timeBufferedSec = 2;
+    private int bufferedStatesCount;
+
+    public PhysicsSimulation(float FPS) {
+        this.FPS = FPS;
+        bufferedStatesCount = (int) (FPS * timeBufferedSec);
+        world = new World(new Vec2(0, -100));
         Random random = new Random();
         addRandomBody(random);
         addRandomBody(random);
@@ -37,29 +43,46 @@ public class PhysicsSimulation {
         setWalls();
     }
 
+
+    public void update() {
+        worldBuffer.add(new WorldShowState(getObjectShowData()));
+        world.step(1 / FPS, 5, 5);
+    }
+
+    public void draw(Canvas canvas) {
+        Log.d("size", worldBuffer.size() + "");
+        canvas.drawColor(Color.BLACK);
+
+        WorldShowState toShow = worldBuffer.remove(0);
+        for (ShowObjectData objectShowDatum : toShow.objectShowData) {
+            Transform transform = objectShowDatum.getTransform();
+            objectShowDatum.getDrawBody().draw(canvas, transform);
+        }
+    }
+
     private void addRandomBody(Random random) {
 
         PolygonShape polygonShape = new PolygonShape();
-        float xr= random.nextFloat();
-        float yr= random.nextFloat() +0.1f;
-        float[] hsv= new float[3];
-        hsv[0]= random.nextFloat()*360;
-        hsv[1]= 0.9f;
-        hsv[2]= 0.9f;
+        float xr = random.nextFloat();
+        float yr = random.nextFloat() + 0.1f;
+        float[] hsv = new float[3];
+        hsv[0] = random.nextFloat() * 360;
+        hsv[1] = 0.9f;
+        hsv[2] = 0.9f;
 
         polygonShape.setAsBox(xr, yr);
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.DYNAMIC;
-        bodyDef.angularVelocity= random.nextFloat()*20;
-        bodyDef.linearVelocity= new Vec2(0,10);
-        bodyDef.position.set((2+random.nextFloat()*5), (2+random.nextFloat()*5));
+        bodyDef.angularVelocity = random.nextFloat() * 20;
+        bodyDef.linearVelocity = new Vec2(0, 10);
+        bodyDef.position.set((2 + random.nextFloat() * 5), (2 + random.nextFloat() * 5));
         Body body = world.createBody(bodyDef);
         body.setBullet(true);
         body.setSleepingAllowed(false);
         world.getBodyList();
         body.createFixture(polygonShape, 5.0f);
-        WallpaperBody drawBody = new RectWallpaperBody(body,Color.HSVToColor(hsv),xr,yr);
+        WallpaperBody drawBody = new RectWallpaperBody(body, Color.HSVToColor(hsv), xr, yr);
         drawBodys.add(drawBody);
     }
 
@@ -67,25 +90,8 @@ public class PhysicsSimulation {
         world.setGravity(gravity);
     }
 
-    public void drawAndUpdate(Canvas canvas, float updateIntervallms) {
-        worldBuffer.add(new WorldShowState(getObjectShowData()));
-        world.step(updateIntervallms/1000,5,5);
-
-
-        canvas.drawColor(Color.BLACK);
-
-        if (worldBuffer.size()> bufferedStatesCount){
-            WorldShowState toShow = worldBuffer.remove(0);
-            for (ShowObjectData objectShowDatum : toShow.objectShowData) {
-                Transform transform = objectShowDatum.getTransform();
-                objectShowDatum.getDrawBody().draw(canvas,transform);
-            }
-        }
-
-    }
-
     private List<ShowObjectData> getObjectShowData() {
-        List<ShowObjectData> data= new ArrayList<>();
+        List<ShowObjectData> data = new ArrayList<>();
 
         for (WallpaperBody drawBody : drawBodys) {
             data.add(new ShowObjectData(new Transform(drawBody.body.getTransform()), drawBody));
@@ -94,14 +100,14 @@ public class PhysicsSimulation {
         return data;
     }
 
-    public void setWalls(){
+    public void setWalls() {
         DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-        float screenXcm=((float) displayMetrics.widthPixels)/displayMetrics.xdpi*2.54f;
-        float screenYcm=((float) displayMetrics.heightPixels)/displayMetrics.ydpi*2.54f;
+        float screenXcm = ((float) displayMetrics.widthPixels) / displayMetrics.xdpi * 2.54f;
+        float screenYcm = ((float) displayMetrics.heightPixels) / displayMetrics.ydpi * 2.54f;
 
-        WallpaperBody floor = getWall(0,-101+0.3f);
-        WallpaperBody right = getWall(-100+0.1f,0);
-        WallpaperBody left = getWall(100+screenXcm-0.1f,0);
+        WallpaperBody floor = getWall(0, -101 + 0.3f);
+        WallpaperBody right = getWall(-100 + 0.1f, 0);
+        WallpaperBody left = getWall(100 + screenXcm - 0.1f, 0);
     }
 
     private WallpaperBody getWall(float x, float y) {
@@ -110,10 +116,10 @@ public class PhysicsSimulation {
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.STATIC;
-        bodyDef.position.set(x,y);
+        bodyDef.position.set(x, y);
         Body body = world.createBody(bodyDef);
         body.createFixture(polygonShape, 5.0f);
-        RectWallpaperBody rectWallpaperBody = new RectWallpaperBody(body, Color.rgb(0, 255, 0), 100,100);
+        RectWallpaperBody rectWallpaperBody = new RectWallpaperBody(body, Color.rgb(0, 255, 0), 100, 100);
         drawBodys.add(rectWallpaperBody);
         return rectWallpaperBody;
     }
