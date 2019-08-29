@@ -15,25 +15,25 @@ import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.World;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import static java.lang.Thread.sleep;
 
-public class PhysicsSimulation {
 
+public class PhysicsSimulation extends Thread {
+
+    private final WorldBuffer worldBuffer;
     private World world;
-    private List<WallpaperBody> drawBodys = Collections.synchronizedList(new ArrayList<WallpaperBody>());
-
-    List<WorldShowState> worldBuffer = new ArrayList<>();
+    private List<WallpaperBody> drawBodys = new ArrayList<>();
+    private long startTime = System.currentTimeMillis();
 
     private float FPS;
-    private float timeBufferedSec = 2;
-    private int bufferedStatesCount;
+    private int step;
 
     public PhysicsSimulation(float FPS) {
         this.FPS = FPS;
-        bufferedStatesCount = (int) (FPS * timeBufferedSec);
+        worldBuffer = new WorldBuffer();
         world = new World(new Vec2(0, -100));
         Random random = new Random();
         addRandomBody(random);
@@ -43,21 +43,48 @@ public class PhysicsSimulation {
         setWalls();
     }
 
-
-    public void update() {
-        worldBuffer.add(new WorldShowState(getObjectShowData()));
-        world.step(1 / FPS, 5, 5);
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                updateToActualStep();
+                sleep(10);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void draw(Canvas canvas) {
-        Log.d("size", worldBuffer.size() + "");
-        canvas.drawColor(Color.BLACK);
-
-        WorldShowState toShow = worldBuffer.remove(0);
-        for (ShowObjectData objectShowDatum : toShow.objectShowData) {
-            Transform transform = objectShowDatum.getTransform();
-            objectShowDatum.getDrawBody().draw(canvas, transform);
+    public void updateToActualStep() {
+        int shouldBeInStep = shouldBeInStep();
+        for (int i = step; i < shouldBeInStep; i++) {
+            worldBuffer.saveState(drawBodys);
+            world.step(1f / FPS, 5, 5);
+            step++;
         }
+    }
+
+    public void draw(Canvas canvas, float timeBehind) {
+        Log.d("size", worldBuffer.size() + "");
+        if (worldBuffer.isEmpty()){
+            canvas.drawColor(Color.WHITE);
+        }else {
+            canvas.drawColor(Color.BLACK);
+            int stepToShow = (int) (shouldBeInStep() - timeBehind * FPS);
+            WorldShowState toShow = worldBuffer.getAndRemoveBefores(stepToShow);
+
+            if (toShow==null)
+                return;
+
+            for (ShowObjectData objectShowDatum : toShow.objectShowData) {
+                Transform transform = objectShowDatum.getTransform();
+                objectShowDatum.getDrawBody().draw(canvas, transform);
+            }
+        }
+    }
+
+    private int shouldBeInStep() {
+        return (int) ((float) (System.currentTimeMillis()-startTime)*(FPS / 1000));
     }
 
     private void addRandomBody(Random random) {
@@ -88,16 +115,6 @@ public class PhysicsSimulation {
 
     public void setGravity(Vec2 gravity) {
         world.setGravity(gravity);
-    }
-
-    private List<ShowObjectData> getObjectShowData() {
-        List<ShowObjectData> data = new ArrayList<>();
-
-        for (WallpaperBody drawBody : drawBodys) {
-            data.add(new ShowObjectData(new Transform(drawBody.body.getTransform()), drawBody));
-        }
-
-        return data;
     }
 
     public void setWalls() {

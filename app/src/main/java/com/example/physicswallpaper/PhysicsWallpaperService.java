@@ -17,9 +17,6 @@ import android.view.SurfaceHolder;
 
 import org.jbox2d.common.Vec2;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 
 public class PhysicsWallpaperService extends WallpaperService {
     @Override
@@ -28,31 +25,27 @@ public class PhysicsWallpaperService extends WallpaperService {
     }
 
     private class PhysicsWallpaperEngine extends Engine {
-        private final Timer physicsTimer = new Timer();
         private final Runnable draw = new Runnable() {
             @Override
             public void run() {
                 draw();
             }
         };
+
         Handler handler = new Handler();
         private boolean visible = true;
         private boolean touchEnabled;
         private int FPS = 10;
-        private PhysicsSimulation physicsSimulation = new PhysicsSimulation(40);
+        private PhysicsSimulation physicsSimulation = new PhysicsSimulation(FPS);
         private Vec2 gravity = new Vec2();
+        private int timeBehind = 1;
 
         public PhysicsWallpaperEngine() {
             SharedPreferences prefs = PreferenceManager
                     .getDefaultSharedPreferences(PhysicsWallpaperService.this);
             touchEnabled = prefs.getBoolean("touch", true);
             handler.post(draw);
-            physicsTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    physicsSimulation.update();
-                }
-            },0,1000/FPS);
+            physicsSimulation.start();
 
             SensorManager sensorManager;
             Sensor sensor;
@@ -109,7 +102,7 @@ public class PhysicsWallpaperService extends WallpaperService {
                 if (canvas != null) {
                     setCanvasToCmScaleAndSetLetCornerAs00(canvas);
                     physicsSimulation.setGravity(gravity);
-                    physicsSimulation.draw(canvas);
+                    physicsSimulation.draw(canvas, timeBehind);
                 }
             } finally {
                 holder.isCreating();
