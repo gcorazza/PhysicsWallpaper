@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">PhysicsWallpaper</string>
     <string name="setwallpaperActionString">Set Wallpaper!</string>
+    <string name="button">Set Wallpaper!</string>
 </resources>
