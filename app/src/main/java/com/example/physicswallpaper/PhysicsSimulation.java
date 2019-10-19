@@ -12,6 +12,7 @@ import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
 
 import java.util.ArrayList;
@@ -28,8 +29,11 @@ public class PhysicsSimulation extends Thread {
     private List<WallpaperBody> drawBodys = new ArrayList<>();
     private long startTime = System.currentTimeMillis();
 
-    private float FPS;
+    private final float FPS;
     private int step;
+    private WorldShowState lastToShow;
+    private int pauseStep = -1;
+    private long startPause;
 
     public PhysicsSimulation(float FPS) {
         this.FPS = FPS;
@@ -55,6 +59,17 @@ public class PhysicsSimulation extends Thread {
         }
     }
 
+    public void pausePhysics() {
+        pauseStep = shouldBeInStep();
+        startPause=System.currentTimeMillis();
+
+    }
+
+    public void resumePhysics() {
+        pauseStep=-1;
+        startTime+=System.currentTimeMillis()-startPause;
+    }
+
     public void updateToActualStep() {
         int shouldBeInStep = shouldBeInStep();
         for (int i = step; i < shouldBeInStep; i++) {
@@ -64,32 +79,46 @@ public class PhysicsSimulation extends Thread {
         }
     }
 
-    public void draw(Canvas canvas, float timeBehind) {
+    public void draw(Canvas canvas, float timeBehindms) {
         Log.d("size", worldBuffer.size() + "");
-        if (worldBuffer.isEmpty()){
+        if (worldBuffer.isEmpty()) {
             canvas.drawColor(Color.WHITE);
-        }else {
-            canvas.drawColor(Color.BLACK);
-            int stepToShow = (int) (shouldBeInStep() - timeBehind * FPS);
-            WorldShowState toShow = worldBuffer.getAndRemoveBefores(stepToShow);
-
-            if (toShow==null)
-                return;
-
-            for (ShowObjectData objectShowDatum : toShow.objectShowData) {
-                Transform transform = objectShowDatum.getTransform();
-                objectShowDatum.getDrawBody().draw(canvas, transform);
-            }
+            return;
         }
+
+        canvas.drawColor(Color.BLACK);
+        int stepToShow = (int) (shouldBeInStep() - timeBehindms / 1000 * FPS);
+        Log.d("step", "steptoshow" + stepToShow);
+        WorldShowState toShow = worldBuffer.getAndRemoveBefores(stepToShow);
+        System.out.println("toShow = " + toShow);
+        System.out.println("worldBuffer.getStep() = " + worldBuffer.getStep());
+
+
+        if (toShow != null) {
+            lastToShow = toShow;
+        } else {
+            toShow = lastToShow;
+        }
+
+        if (toShow == null)
+            return;
+
+        for (ShowObjectData objectShowDatum : toShow.objectShowData) {
+            Transform transform = objectShowDatum.getTransform();
+            objectShowDatum.getDrawBody().draw(canvas, transform);
+        }
+
     }
 
     private int shouldBeInStep() {
-        return (int) ((float) (System.currentTimeMillis()-startTime)*(FPS / 1000));
+        if (pauseStep == -1)
+            return (int) ((float) (System.currentTimeMillis() - startTime) * (FPS / 1000));
+        else
+            return pauseStep;
     }
 
     private void addRandomBody(Random random) {
 
-        PolygonShape polygonShape = new PolygonShape();
         float xr = random.nextFloat();
         float yr = random.nextFloat() + 0.1f;
         float[] hsv = new float[3];
@@ -97,6 +126,7 @@ public class PhysicsSimulation extends Thread {
         hsv[1] = 0.9f;
         hsv[2] = 0.9f;
 
+        PolygonShape polygonShape = new PolygonShape();
         polygonShape.setAsBox(xr, yr);
 
         BodyDef bodyDef = new BodyDef();
@@ -107,8 +137,9 @@ public class PhysicsSimulation extends Thread {
         Body body = world.createBody(bodyDef);
         body.setBullet(true);
         body.setSleepingAllowed(false);
-        world.getBodyList();
-        body.createFixture(polygonShape, 5.0f);
+        Fixture fixture = body.createFixture(polygonShape, 5.0f);
+        fixture.m_restitution = 0.2f + random.nextFloat() * 0.3f;
+
         WallpaperBody drawBody = new RectWallpaperBody(body, Color.HSVToColor(hsv), xr, yr);
         drawBodys.add(drawBody);
     }
@@ -122,21 +153,21 @@ public class PhysicsSimulation extends Thread {
         float screenXcm = ((float) displayMetrics.widthPixels) / displayMetrics.xdpi * 2.54f;
         float screenYcm = ((float) displayMetrics.heightPixels) / displayMetrics.ydpi * 2.54f;
 
-        WallpaperBody floor = getWall(0, -101 + 0.3f);
-        WallpaperBody right = getWall(-100 + 0.1f, 0);
-        WallpaperBody left = getWall(100 + screenXcm - 0.1f, 0);
+        WallpaperBody floor = getWall(0, -11 + 0.3f);
+        WallpaperBody right = getWall(-10 + 0.1f, 0);
+        WallpaperBody left = getWall(10 + screenXcm - 0.1f, 0);
     }
 
     private WallpaperBody getWall(float x, float y) {
         PolygonShape polygonShape = new PolygonShape();
-        polygonShape.setAsBox(100, 100);
+        polygonShape.setAsBox(10, 10);
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.STATIC;
         bodyDef.position.set(x, y);
         Body body = world.createBody(bodyDef);
         body.createFixture(polygonShape, 5.0f);
-        RectWallpaperBody rectWallpaperBody = new RectWallpaperBody(body, Color.rgb(0, 255, 0), 100, 100);
+        RectWallpaperBody rectWallpaperBody = new RectWallpaperBody(body, Color.rgb(0, 255, 0), 10, 10);
         drawBodys.add(rectWallpaperBody);
         return rectWallpaperBody;
     }

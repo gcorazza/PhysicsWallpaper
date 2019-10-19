@@ -13,7 +13,6 @@ public class WorldBuffer {
     private int lastElement;
     private int step;
 
-
     public void saveState(List<WallpaperBody> drawBodys) {
         List<ShowObjectData> data = new ArrayList<>();
 
@@ -38,11 +37,15 @@ public class WorldBuffer {
         WorldShowState worldShowState = worldBuffer.get(step);
 
         if (step >= lastElement) {
-            for (int i = lastElement; i <= step; i++) {
+            for (int i = lastElement; i < step; i++) {
                 worldBuffer.remove(i);
             }
             lastElement = step;
         }
         return worldShowState;
+    }
+
+    public int getStep() {
+        return step;
     }
 }

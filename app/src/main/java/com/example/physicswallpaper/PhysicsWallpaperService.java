@@ -35,10 +35,10 @@ public class PhysicsWallpaperService extends WallpaperService {
         Handler handler = new Handler();
         private boolean visible = true;
         private boolean touchEnabled;
-        private int FPS = 10;
+        private int FPS = 40;
         private PhysicsSimulation physicsSimulation = new PhysicsSimulation(FPS);
         private Vec2 gravity = new Vec2();
-        private int timeBehind = 1;
+        private int timeBehindms = 100;
 
         public PhysicsWallpaperEngine() {
             SharedPreferences prefs = PreferenceManager
@@ -102,10 +102,9 @@ public class PhysicsWallpaperService extends WallpaperService {
                 if (canvas != null) {
                     setCanvasToCmScaleAndSetLetCornerAs00(canvas);
                     physicsSimulation.setGravity(gravity);
-                    physicsSimulation.draw(canvas, timeBehind);
+                    physicsSimulation.draw(canvas, timeBehindms);
                 }
             } finally {
-                holder.isCreating();
                 if (canvas != null) {
                     holder.unlockCanvasAndPost(canvas);
                 }
