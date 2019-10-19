@@ -37,8 +37,7 @@ public class PhysicsWallpaperService extends WallpaperService {
         private boolean touchEnabled;
         private int FPS = 40;
         private PhysicsSimulation physicsSimulation = new PhysicsSimulation(FPS);
-        private Vec2 gravity = new Vec2();
-        private int timeBehindms = 100;
+        private int timeBehindms = 30;
 
         public PhysicsWallpaperEngine() {
             SharedPreferences prefs = PreferenceManager
@@ -47,24 +46,38 @@ public class PhysicsWallpaperService extends WallpaperService {
             handler.post(draw);
             physicsSimulation.start();
 
-            SensorManager sensorManager;
-            Sensor sensor;
-            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-//            if (sensorManager != null) {
-            sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
-
-            sensorManager.registerListener(new SensorEventListener() {
+            registerSensor(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(SensorEvent sensorEvent) {
-                    gravity = new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(10);
+                    physicsSimulation.setGravity(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(10));
                 }
 
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int i) {
+                }
+            }, Sensor.TYPE_GRAVITY);
+
+            registerSensor(new SensorEventListener() {
+                @Override
+                public void onSensorChanged(SensorEvent sensorEvent) {
+                    physicsSimulation.setGravity(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(50));
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
                 }
-            }, sensor, 10000);
-//            }
+            }, Sensor.TYPE_LINEAR_ACCELERATION);
+
+        }
+
+        private void registerSensor(SensorEventListener listener, int typeGravity) {
+            SensorManager sensorManager;
+            Sensor sensor;
+            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            sensor = sensorManager.getDefaultSensor(typeGravity);
+
+            sensorManager.registerListener(listener, sensor, 10000);
         }
 
 
@@ -105,7 +118,6 @@ public class PhysicsWallpaperService extends WallpaperService {
                 canvas = holder.lockCanvas();
                 if (canvas != null) {
                     setCanvasToCmScaleAndSetLetCornerAs00(canvas);
-                    physicsSimulation.setGravity(gravity);
                     physicsSimulation.draw(canvas, timeBehindms);
                 }
             } finally {

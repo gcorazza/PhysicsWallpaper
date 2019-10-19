@@ -82,10 +82,6 @@ public class PhysicsSimulation extends Thread {
 
     public void draw(Canvas canvas, float timeBehindms) {
         Log.d("size", worldBuffer.size() + "");
-        if (worldBuffer.isEmpty()) {
-            canvas.drawColor(Color.WHITE);
-            return;
-        }
 
         canvas.drawColor(Color.BLACK);
         int stepToShow = (int) (shouldBeInStep() - timeBehindms / 1000 * FPS);
