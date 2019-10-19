@@ -35,6 +35,8 @@ public class PhysicsSimulation extends Thread {
     private int pauseStep = -1;
     private long startPause;
     private int wallWidth = 3;
+    private Vec2 moveAcceleration= new Vec2();
+    private Vec2 gravity= new Vec2();
 
     public PhysicsSimulation(float FPS) {
         this.FPS = FPS;
@@ -76,6 +78,7 @@ public class PhysicsSimulation extends Thread {
         int shouldBeInStep = shouldBeInStep();
         for (int i = step; i < shouldBeInStep; i++) {
             worldBuffer.saveState(drawBodys);
+            world.setGravity(moveAcceleration.add(gravity));
             world.step(1f / FPS, 5, 5);
             step++;
         }
@@ -143,7 +146,7 @@ public class PhysicsSimulation extends Thread {
     }
 
     public void setGravity(Vec2 gravity) {
-        world.setGravity(gravity);
+        this.gravity = gravity;
     }
 
     public void setWalls() {
@@ -182,5 +185,9 @@ public class PhysicsSimulation extends Thread {
 
     public void touch(float x, float y) {
 
+    }
+
+    public void setMovement(Vec2 moveAcc) {
+        this.moveAcceleration = moveAcc;
     }
 }

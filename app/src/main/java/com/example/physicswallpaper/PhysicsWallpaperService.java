@@ -35,7 +35,7 @@ public class PhysicsWallpaperService extends WallpaperService {
         Handler handler = new Handler();
         private boolean visible = true;
         private boolean touchEnabled;
-        private int FPS = 40;
+        private float FPS = 40;
         private PhysicsSimulation physicsSimulation = new PhysicsSimulation(FPS);
         private int timeBehindms = 30;
 
@@ -60,7 +60,7 @@ public class PhysicsWallpaperService extends WallpaperService {
             registerSensor(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(SensorEvent sensorEvent) {
-                    physicsSimulation.setGravity(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(50));
+                    physicsSimulation.setMovement(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(50));
                 }
 
                 @Override
@@ -68,25 +68,21 @@ public class PhysicsWallpaperService extends WallpaperService {
 
                 }
             }, Sensor.TYPE_LINEAR_ACCELERATION);
-
         }
 
         private void registerSensor(SensorEventListener listener, int typeGravity) {
             SensorManager sensorManager;
-            Sensor sensor;
             sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-            sensor = sensorManager.getDefaultSensor(typeGravity);
-
-            sensorManager.registerListener(listener, sensor, FPS*1000000);
-        }
-
+            Sensor sensor = sensorManager.getDefaultSensor(typeGravity);
+            sensorManager.registerListener(listener, sensor, 1000000);
+        } //jeremy
 
         @Override
         public void onVisibilityChanged(boolean visible) {
             this.visible = visible;
-            if (!visible){
+            if (!visible)
                 physicsSimulation.pausePhysics();
-            }else
+            else
                 physicsSimulation.resumePhysics();
         }
 
@@ -95,7 +91,6 @@ public class PhysicsWallpaperService extends WallpaperService {
             super.onSurfaceDestroyed(holder);
             this.visible = false;
         }
-
 
         @Override
         public void onTouchEvent(MotionEvent event) {
