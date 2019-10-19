@@ -77,7 +77,7 @@ public class PhysicsWallpaperService extends WallpaperService {
             sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             sensor = sensorManager.getDefaultSensor(typeGravity);
 
-            sensorManager.registerListener(listener, sensor, 10000);
+            sensorManager.registerListener(listener, sensor, FPS*1000000);
         }
 
 

@@ -34,6 +34,7 @@ public class PhysicsSimulation extends Thread {
     private WorldShowState lastToShow;
     private int pauseStep = -1;
     private long startPause;
+    private int wallWidth = 3;
 
     public PhysicsSimulation(float FPS) {
         this.FPS = FPS;
@@ -146,27 +147,37 @@ public class PhysicsSimulation extends Thread {
     }
 
     public void setWalls() {
-        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-        float screenXcm = ((float) displayMetrics.widthPixels) / displayMetrics.xdpi * 2.54f;
-        float screenYcm = ((float) displayMetrics.heightPixels) / displayMetrics.ydpi * 2.54f;
+        float screenXcm = getScreenXcm();
+        float screenYcm = getScreenYcm();
+        float wallTight=wallWidth;
 
-        WallpaperBody floor = getWall(0, -11 + 0.3f);
-        WallpaperBody right = getWall(-10 + 0.1f, 0);
-        WallpaperBody left = getWall(10 + screenXcm - 0.1f, 0);
+        setWall(-wallTight,         screenYcm / 2,                    wallWidth, wallWidth + screenYcm); //left Wall
+        setWall(screenXcm+ wallTight,      screenYcm / 2,                    wallWidth, wallWidth + screenYcm); //right Wall
+        setWall(screenXcm / 2,        -wallTight , screenXcm + wallWidth ,                     wallWidth); //down Wall
+        setWall(screenXcm / 2,     screenYcm +wallTight, screenXcm + wallWidth,                     wallWidth); //top Wall
     }
 
-    private WallpaperBody getWall(float x, float y) {
+    private void setWall(float posX, float posY, float width, float height) {
         PolygonShape polygonShape = new PolygonShape();
-        polygonShape.setAsBox(10, 10);
+        polygonShape.setAsBox(width, height);
 
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyType.STATIC;
-        bodyDef.position.set(x, y);
+        bodyDef.position.set(posX, posY);
         Body body = world.createBody(bodyDef);
         body.createFixture(polygonShape, 5.0f);
-        RectWallpaperBody rectWallpaperBody = new RectWallpaperBody(body, Color.rgb(0, 255, 0), 10, 10);
+        RectWallpaperBody rectWallpaperBody = new RectWallpaperBody(body, Color.rgb(255, 255, 255), width, height);
         drawBodys.add(rectWallpaperBody);
-        return rectWallpaperBody;
+    }
+
+    private float getScreenXcm() {
+        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
+        return ((float) displayMetrics.widthPixels) / displayMetrics.xdpi * 2.54f;
+    }
+
+    private float getScreenYcm() {
+        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
+        return ((float) displayMetrics.heightPixels) / displayMetrics.ydpi * 2.54f;
     }
 
     public void touch(float x, float y) {
