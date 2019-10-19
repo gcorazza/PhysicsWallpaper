@@ -71,6 +71,10 @@ public class PhysicsWallpaperService extends WallpaperService {
         @Override
         public void onVisibilityChanged(boolean visible) {
             this.visible = visible;
+            if (!visible){
+                physicsSimulation.pausePhysics();
+            }else
+                physicsSimulation.resumePhysics();
         }
 
         @Override

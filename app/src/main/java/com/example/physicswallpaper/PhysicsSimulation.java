@@ -61,13 +61,14 @@ public class PhysicsSimulation extends Thread {
 
     public void pausePhysics() {
         pauseStep = shouldBeInStep();
-        startPause=System.currentTimeMillis();
+        startPause = System.currentTimeMillis();
 
     }
 
     public void resumePhysics() {
-        pauseStep=-1;
-        startTime+=System.currentTimeMillis()-startPause;
+        pauseStep = -1;
+        if (startPause != 0)
+            startTime += System.currentTimeMillis() - startPause;
     }
 
     public void updateToActualStep() {
