@@ -41,7 +41,7 @@ public class PhysicsSimulation extends Thread {
     private final int wallWidth = 3;
     private List<Vec2> moveAcceleration = Collections.synchronizedList(new ArrayList<>());
     private Vec2 gravity = new Vec2();
-    private Vec2 lastMoveAcceleration= new Vec2();
+    private Vec2 lastMoveAcceleration = new Vec2();
 
     public PhysicsSimulation(float FPS) {
         this.FPS = FPS;
@@ -59,8 +59,10 @@ public class PhysicsSimulation extends Thread {
     public void run() {
         try {
             while (true) {
-                updateToActualStep();
-                sleep(10);
+                while (!isPaused()) {
+                    updateToActualStep();
+                    sleep(10);
+                }
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -70,7 +72,6 @@ public class PhysicsSimulation extends Thread {
     public void pausePhysics() {
         pauseStep = shouldBeInStep();
         startPause = System.currentTimeMillis();
-
     }
 
     public void resumePhysics() {
@@ -91,14 +92,14 @@ public class PhysicsSimulation extends Thread {
     }
 
     public Vec2 calcAccelerationVec() {
-        if (moveAcceleration.isEmpty()){
+        if (moveAcceleration.isEmpty()) {
             return lastMoveAcceleration;
         }
         final Vec2[] vr = {new Vec2()};
         moveAcceleration.forEach((v) -> {
             vr[0] = vr[0].add(v);
         });
-        lastMoveAcceleration=vr[0].mul(1f/moveAcceleration.size());
+        lastMoveAcceleration = vr[0].mul(1f / moveAcceleration.size());
         moveAcceleration.clear();
         return vr[0];
     }
@@ -199,6 +200,10 @@ public class PhysicsSimulation extends Thread {
     public void setMovement(Vec2 moveAcc) {
         Log.d("timing", "setMove");
         this.moveAcceleration.add(moveAcc);
+    }
+
+    private boolean isPaused() {
+        return pauseStep != -1;
     }
 
     public void setGravity(Vec2 gravity) {

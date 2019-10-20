@@ -8,11 +8,11 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.service.wallpaper.WallpaperService;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 
@@ -26,31 +26,28 @@ public class PhysicsWallpaperService extends WallpaperService {
     }
 
     private class PhysicsWallpaperEngine extends Engine {
-        private final Runnable draw = new Runnable() {
-            @Override
-            public void run() {
-                draw();
-            }
-        };
+        private final Runnable draw = () -> draw();
 
         Handler handler = new Handler();
         private boolean visible = true;
         private boolean touchEnabled;
         private float FPS = 40;
-        private PhysicsSimulation physicsSimulation = new PhysicsSimulation(FPS);
+        private PhysicsSimulation physicsSimulation;
         private int timeBehindms = 30;
+        private boolean surfaceChanged;
+        private SensorEventListener gravityListener;
+        private SensorEventListener accelerationListener;
 
         public PhysicsWallpaperEngine() {
             SharedPreferences prefs = PreferenceManager
                     .getDefaultSharedPreferences(PhysicsWallpaperService.this);
             touchEnabled = prefs.getBoolean("touch", true);
-            handler.post(draw);
-            physicsSimulation.start();
 
             int accelerationStrength = 30;
             int gravityStrength = 10;
 
-            registerSensor(new SensorEventListener() {
+            physicsSimulation = new PhysicsSimulation(FPS);
+            gravityListener = new SensorEventListener() {
                 @Override
                 public void onSensorChanged(SensorEvent sensorEvent) {
                     physicsSimulation.setGravity(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(gravityStrength));
@@ -59,9 +56,8 @@ public class PhysicsWallpaperService extends WallpaperService {
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int i) {
                 }
-            }, Sensor.TYPE_GRAVITY);
-
-            registerSensor(new SensorEventListener() {
+            };
+            accelerationListener = new SensorEventListener() {
                 @Override
                 public void onSensorChanged(SensorEvent sensorEvent) {
                     physicsSimulation.setMovement(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(accelerationStrength));
@@ -71,32 +67,60 @@ public class PhysicsWallpaperService extends WallpaperService {
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
                 }
-            }, Sensor.TYPE_LINEAR_ACCELERATION);
+            };
+
+            handler.post(draw);
+            physicsSimulation.start();
+        }
+
+        private void registerSensors() {
+            registerSensor(gravityListener, Sensor.TYPE_GRAVITY);
+            registerSensor(accelerationListener, Sensor.TYPE_LINEAR_ACCELERATION);
+        }
+
+        private void unregisterSensors() {
+            SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            sensorManager.unregisterListener(gravityListener);
+            sensorManager.unregisterListener(accelerationListener);
         }
 
 
         private void registerSensor(SensorEventListener listener, int typeGravity) {
-            SensorManager sensorManager;
-            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            SensorManager sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             Sensor sensor = sensorManager.getDefaultSensor(typeGravity);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                sensorManager.registerListener(listener, sensor, (int) (1f/FPS*1000000),timeBehindms*1000/2); //method saves energy consumtion
-            }else {
-                sensorManager.registerListener(listener, sensor, (int) (1f/FPS*1000000)); //method saves energy consumtion
-            }
+            sensorManager.registerListener(listener, sensor, (int) (1f / FPS * 1000000), timeBehindms * 1000 / 2); //method saves energy consumtion
         } //jeremy
 
         @Override
         public void onVisibilityChanged(boolean visible) {
+            Log.d("visibility", visible+"");
             this.visible = visible;
-            if (!visible)
-                physicsSimulation.pausePhysics();
-            else
-                physicsSimulation.resumePhysics();
+            if (visible) {
+                setVisible();
+            } else {
+                setUnvisible();
+            }
+        }
+
+        private void setVisible() {
+            registerSensors();
+            physicsSimulation.resumePhysics();
+        }
+
+        private void setUnvisible() {
+            unregisterSensors();
+            physicsSimulation.pausePhysics();
+        }
+
+        @Override
+        public void onSurfaceCreated(SurfaceHolder holder) {
+            super.onSurfaceCreated(holder);
+            Log.d("created", "created");
         }
 
         @Override
         public void onSurfaceDestroyed(SurfaceHolder holder) {
+            Log.d("destroed", "destroed");
             super.onSurfaceDestroyed(holder);
             this.visible = false;
         }
@@ -111,8 +135,15 @@ public class PhysicsWallpaperService extends WallpaperService {
             }
         }
 
+        @Override
+        public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            super.onSurfaceChanged(holder, format, width, height);
+            Log.d("changed", "chnged surface size");
+            surfaceChanged = true;
+        }
+
         private void draw() {
-            handler.postDelayed(draw, (long) (1000f/FPS));
+            handler.postDelayed(draw, (long) (1000f / FPS));
             if (!visible)
                 return;
 
@@ -126,6 +157,7 @@ public class PhysicsWallpaperService extends WallpaperService {
                 }
             } finally {
                 if (canvas != null) {
+                    System.out.println("surfaceChanged = " + surfaceChanged);
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
