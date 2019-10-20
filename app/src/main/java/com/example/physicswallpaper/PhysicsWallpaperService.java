@@ -8,6 +8,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.service.wallpaper.WallpaperService;
@@ -46,10 +47,13 @@ public class PhysicsWallpaperService extends WallpaperService {
             handler.post(draw);
             physicsSimulation.start();
 
+            int accelerationStrength = 30;
+            int gravityStrength = 10;
+
             registerSensor(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(SensorEvent sensorEvent) {
-                    physicsSimulation.setGravity(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(10));
+                    physicsSimulation.setGravity(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(gravityStrength));
                 }
 
                 @Override
@@ -60,7 +64,7 @@ public class PhysicsWallpaperService extends WallpaperService {
             registerSensor(new SensorEventListener() {
                 @Override
                 public void onSensorChanged(SensorEvent sensorEvent) {
-                    physicsSimulation.setMovement(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(50));
+                    physicsSimulation.setMovement(new Vec2(-sensorEvent.values[0], -sensorEvent.values[1]).mul(accelerationStrength));
                 }
 
                 @Override
@@ -70,11 +74,16 @@ public class PhysicsWallpaperService extends WallpaperService {
             }, Sensor.TYPE_LINEAR_ACCELERATION);
         }
 
+
         private void registerSensor(SensorEventListener listener, int typeGravity) {
             SensorManager sensorManager;
             sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
             Sensor sensor = sensorManager.getDefaultSensor(typeGravity);
-            sensorManager.registerListener(listener, sensor, 1000000);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                sensorManager.registerListener(listener, sensor, (int) (1f/FPS*1000000),timeBehindms*1000/2); //method saves energy consumtion
+            }else {
+                sensorManager.registerListener(listener, sensor, (int) (1f/FPS*1000000)); //method saves energy consumtion
+            }
         } //jeremy
 
         @Override

@@ -3,8 +3,11 @@ package com.example.physicswallpaper;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
+
+import androidx.annotation.RequiresApi;
 
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Transform;
@@ -16,6 +19,7 @@ import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -34,9 +38,10 @@ public class PhysicsSimulation extends Thread {
     private WorldShowState lastToShow;
     private int pauseStep = -1;
     private long startPause;
-    private int wallWidth = 3;
-    private Vec2 moveAcceleration= new Vec2();
-    private Vec2 gravity= new Vec2();
+    private final int wallWidth = 3;
+    private List<Vec2> moveAcceleration = Collections.synchronizedList(new ArrayList<>());
+    private Vec2 gravity = new Vec2();
+    private Vec2 lastMoveAcceleration= new Vec2();
 
     public PhysicsSimulation(float FPS) {
         this.FPS = FPS;
@@ -78,22 +83,30 @@ public class PhysicsSimulation extends Thread {
         int shouldBeInStep = shouldBeInStep();
         for (int i = step; i < shouldBeInStep; i++) {
             worldBuffer.saveState(drawBodys);
-            world.setGravity(moveAcceleration.add(gravity));
-            world.step(1f / FPS, 5, 5);
+            world.setGravity(calcAccelerationVec().add(gravity));
+            world.step(1f / FPS, 10, 10);
             step++;
+            Log.d("timing", "step");
         }
     }
 
-    public void draw(Canvas canvas, float timeBehindms) {
-        Log.d("size", worldBuffer.size() + "");
+    public Vec2 calcAccelerationVec() {
+        if (moveAcceleration.isEmpty()){
+            return lastMoveAcceleration;
+        }
+        final Vec2[] vr = {new Vec2()};
+        moveAcceleration.forEach((v) -> {
+            vr[0] = vr[0].add(v);
+        });
+        lastMoveAcceleration=vr[0].mul(1f/moveAcceleration.size());
+        moveAcceleration.clear();
+        return vr[0];
+    }
 
+    public void draw(Canvas canvas, float timeBehindms) {
         canvas.drawColor(Color.BLACK);
         int stepToShow = (int) (shouldBeInStep() - timeBehindms / 1000 * FPS);
-        Log.d("step", "steptoshow" + stepToShow);
         WorldShowState toShow = worldBuffer.getAndRemoveBefores(stepToShow);
-        System.out.println("toShow = " + toShow);
-        System.out.println("worldBuffer.getStep() = " + worldBuffer.getStep());
-
 
         if (toShow != null) {
             lastToShow = toShow;
@@ -145,19 +158,15 @@ public class PhysicsSimulation extends Thread {
         drawBodys.add(drawBody);
     }
 
-    public void setGravity(Vec2 gravity) {
-        this.gravity = gravity;
-    }
-
     public void setWalls() {
         float screenXcm = getScreenXcm();
         float screenYcm = getScreenYcm();
-        float wallTight=wallWidth;
+        float wallTight = wallWidth;
 
-        setWall(-wallTight,         screenYcm / 2,                    wallWidth, wallWidth + screenYcm); //left Wall
-        setWall(screenXcm+ wallTight,      screenYcm / 2,                    wallWidth, wallWidth + screenYcm); //right Wall
-        setWall(screenXcm / 2,        -wallTight , screenXcm + wallWidth ,                     wallWidth); //down Wall
-        setWall(screenXcm / 2,     screenYcm +wallTight, screenXcm + wallWidth,                     wallWidth); //top Wall
+        setWall(-wallTight, screenYcm / 2, wallWidth, wallWidth + screenYcm); //left Wall
+        setWall(screenXcm + wallTight, screenYcm / 2, wallWidth, wallWidth + screenYcm); //right Wall
+        setWall(screenXcm / 2, -wallTight, screenXcm + wallWidth, wallWidth); //down Wall
+        setWall(screenXcm / 2, screenYcm + wallTight, screenXcm + wallWidth, wallWidth); //top Wall
     }
 
     private void setWall(float posX, float posY, float width, float height) {
@@ -188,6 +197,11 @@ public class PhysicsSimulation extends Thread {
     }
 
     public void setMovement(Vec2 moveAcc) {
-        this.moveAcceleration = moveAcc;
+        Log.d("timing", "setMove");
+        this.moveAcceleration.add(moveAcc);
+    }
+
+    public void setGravity(Vec2 gravity) {
+        this.gravity = gravity;
     }
 }
