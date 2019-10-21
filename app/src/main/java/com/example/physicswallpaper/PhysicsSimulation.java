@@ -135,8 +135,8 @@ public class PhysicsSimulation extends Thread {
 
     private void addRandomBody(Random random) {
 
-        float xr = random.nextFloat();
-        float yr = random.nextFloat() + 0.1f;
+        float xr = random.nextFloat() + 0.2f;
+        float yr = random.nextFloat() + 0.2f;
         float[] hsv = new float[3];
         hsv[0] = random.nextFloat() * 360;
         hsv[1] = 0.9f;
