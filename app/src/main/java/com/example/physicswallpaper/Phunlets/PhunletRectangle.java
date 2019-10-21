@@ -18,9 +18,6 @@ public class PhunletRectangle extends Phunlet {
         this.hr = h;
     }
 
-    public void draw(Canvas canvas) {
-        draw(canvas, body.getTransform());
-    }
 
     public void draw(Canvas canvas, Transform transform) {
         canvas.save();

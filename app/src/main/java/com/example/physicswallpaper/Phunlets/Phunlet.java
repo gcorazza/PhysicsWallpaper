@@ -63,6 +63,10 @@ public abstract class Phunlet {
                 Math.min(b, 255));
     }
 
+    public void draw(Canvas canvas) {
+        draw(canvas, body.getTransform());
+    }
+
     public abstract void draw(Canvas canvas, Transform transform);
 
     public Body getBody() {
