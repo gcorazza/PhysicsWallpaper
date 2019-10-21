@@ -1,21 +1,20 @@
-package com.example.physicswallpaper;
+package com.example.physicswallpaper.Phunlets;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 
 
-import org.jbox2d.common.Rot;
 import org.jbox2d.common.Transform;
 import org.jbox2d.dynamics.Body;
 
-public abstract class WallpaperBody extends Rot {
+public abstract class Phunlet {
     protected final Paint innerPaint = new Paint();
     protected final Paint outerPaint = new Paint();
     protected final Body body;
     protected final float strokeWidth = 0.1f;
 
-    public WallpaperBody(int color, Body body) {
+    Phunlet(int color, Body body) {
         this.body = body;
         colorSet2(color);
     }
@@ -65,4 +64,8 @@ public abstract class WallpaperBody extends Rot {
     }
 
     public abstract void draw(Canvas canvas, Transform transform);
+
+    public Body getBody() {
+        return body;
+    }
 }

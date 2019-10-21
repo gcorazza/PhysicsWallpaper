@@ -1,12 +1,14 @@
 package com.example.physicswallpaper;
 
+import com.example.physicswallpaper.Phunlets.Phunlet;
+
 import org.jbox2d.common.Transform;
 
 class ShowObjectData {
     private Transform transform;
-    private WallpaperBody drawBody;
+    private Phunlet drawBody;
 
-    public ShowObjectData(Transform transform, WallpaperBody drawBody) {
+    public ShowObjectData(Transform transform, Phunlet drawBody) {
         this.transform = transform;
         this.drawBody = drawBody;
     }
@@ -15,7 +17,7 @@ class ShowObjectData {
         return transform;
     }
 
-    public WallpaperBody getDrawBody() {
+    public Phunlet getDrawBody() {
         return drawBody;
     }
 }

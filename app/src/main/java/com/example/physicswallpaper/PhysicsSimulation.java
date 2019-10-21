@@ -3,11 +3,12 @@ package com.example.physicswallpaper;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
+import com.example.physicswallpaper.Phunlets.Phunlet;
+import com.example.physicswallpaper.Phunlets.PhunletBuilder;
+import com.example.physicswallpaper.Phunlets.RectPhunlet;
 
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Transform;
@@ -41,6 +42,7 @@ public class PhysicsSimulation extends Thread {
     private List<Vec2> moveAcceleration = Collections.synchronizedList(new ArrayList<>());
     private Vec2 gravity = new Vec2();
     private Vec2 lastMoveAcceleration = new Vec2();
+    private int WHITE = Color.rgb(255, 255, 255);
 
     public PhysicsSimulation(float FPS) {
         this.FPS = FPS;
@@ -133,30 +135,27 @@ public class PhysicsSimulation extends Thread {
     }
 
     private void addRandomBody(Random random) {
+        float h = random.nextFloat() * 360;
+        float s = 0.9f;
+        float v = 0.9f;
+        int color = HSVToColor(h, s, v);
 
-        float xr = random.nextFloat() + 0.2f;
-        float yr = random.nextFloat() + 0.2f;
+        float posX = 2 + random.nextFloat() * 5;
+        float posY = 2 + random.nextFloat() * 5;
+        float width = random.nextFloat() + 0.2f;
+        float height = random.nextFloat() + 0.2f;
+
+        RectPhunlet rectPhunlet = PhunletBuilder.addRect(world, color, posX, posY, width, height, 0, 5);
+        rectPhunlet.getBody().setBullet(true);
+        rectPhunlet.getBody().setSleepingAllowed(false);
+    }
+
+    private int HSVToColor(float h, float s, float v) {
         float[] hsv = new float[3];
-        hsv[0] = random.nextFloat() * 360;
-        hsv[1] = 0.9f;
-        hsv[2] = 0.9f;
-
-        PolygonShape polygonShape = new PolygonShape();
-        polygonShape.setAsBox(xr, yr);
-
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyType.DYNAMIC;
-        bodyDef.angularVelocity = random.nextFloat() * 20;
-        bodyDef.linearVelocity = new Vec2(0, 10);
-        bodyDef.position.set((2 + random.nextFloat() * 5), (2 + random.nextFloat() * 5));
-        Body body = world.createBody(bodyDef);
-        body.setBullet(true);
-        body.setSleepingAllowed(false);
-        Fixture fixture = body.createFixture(polygonShape, 5.0f);
-        fixture.m_restitution = 0.2f + random.nextFloat() * 0.3f;
-
-        WallpaperBody drawBody = new RectWallpaperBody(body, Color.HSVToColor(hsv), xr, yr);
-        body.m_userData = drawBody;
+        hsv[0] = h;
+        hsv[1] = s;
+        hsv[2] = v;
+        return Color.HSVToColor(hsv);
     }
 
     public void setWalls() {
@@ -173,14 +172,8 @@ public class PhysicsSimulation extends Thread {
     private void setWall(float posX, float posY, float width, float height) {
         PolygonShape polygonShape = new PolygonShape();
         polygonShape.setAsBox(width, height);
-
-        BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyType.STATIC;
-        bodyDef.position.set(posX, posY);
-        Body body = world.createBody(bodyDef);
-        body.createFixture(polygonShape, 5.0f);
-        RectWallpaperBody rectWallpaperBody = new RectWallpaperBody(body, Color.rgb(255, 255, 255), width, height);
-        body.m_userData = rectWallpaperBody;
+        RectPhunlet wall = PhunletBuilder.addRect(world, WHITE, posX, posY, width, height, 0, 5);
+        wall.getBody().setType(BodyType.STATIC);
     }
 
     private float getScreenXcm() {

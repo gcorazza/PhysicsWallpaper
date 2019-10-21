@@ -1,5 +1,7 @@
 package com.example.physicswallpaper;
 
+import com.example.physicswallpaper.Phunlets.Phunlet;
+
 import org.jbox2d.common.Transform;
 import org.jbox2d.dynamics.Body;
 
@@ -10,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class WorldBuffer {
-    private Map<Integer, WorldShowState> worldBuffer = Collections.synchronizedMap(new HashMap<Integer, WorldShowState>());
+    private Map<Integer, WorldShowState> worldBuffer = Collections.synchronizedMap(new HashMap<>());
     private int lastElement;
     private int step;
 
@@ -18,8 +20,8 @@ public class WorldBuffer {
         List<ShowObjectData> data = new ArrayList<>();
 
         while (drawBodys!=null){
-            WallpaperBody drawBody = (WallpaperBody) drawBodys.m_userData;
-            data.add(new ShowObjectData(new Transform(drawBody.body.getTransform()), drawBody));
+            Phunlet drawBody = (Phunlet) drawBodys.m_userData;
+            data.add(new ShowObjectData(new Transform(drawBody.getBody().getTransform()), drawBody));
             drawBodys=drawBodys.m_next;
         }
         worldBuffer.put(step++, new WorldShowState(data));
