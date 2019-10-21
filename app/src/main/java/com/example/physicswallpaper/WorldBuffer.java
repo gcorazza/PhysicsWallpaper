@@ -1,6 +1,7 @@
 package com.example.physicswallpaper;
 
 import org.jbox2d.common.Transform;
+import org.jbox2d.dynamics.Body;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,11 +14,13 @@ public class WorldBuffer {
     private int lastElement;
     private int step;
 
-    public void saveState(List<WallpaperBody> drawBodys) {
+    public void saveState(Body drawBodys) {
         List<ShowObjectData> data = new ArrayList<>();
 
-        for (WallpaperBody drawBody : drawBodys) {
+        while (drawBodys!=null){
+            WallpaperBody drawBody = (WallpaperBody) drawBodys.m_userData;
             data.add(new ShowObjectData(new Transform(drawBody.body.getTransform()), drawBody));
+            drawBodys=drawBodys.m_next;
         }
         worldBuffer.put(step++, new WorldShowState(data));
     }

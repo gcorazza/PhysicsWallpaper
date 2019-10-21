@@ -30,7 +30,6 @@ public class PhysicsSimulation extends Thread {
 
     private final WorldBuffer worldBuffer;
     private World world;
-    private List<WallpaperBody> drawBodys = new ArrayList<>();
     private long startTime = System.currentTimeMillis();
 
     private final float FPS;
@@ -84,7 +83,7 @@ public class PhysicsSimulation extends Thread {
     public void updateToActualStep() {
         int shouldBeInStep = shouldBeInStep();
         for (int i = step; i < shouldBeInStep; i++) {
-            worldBuffer.saveState(drawBodys);
+            worldBuffer.saveState(world.getBodyList());
             world.setGravity(calcAccelerationVec().add(gravity));
             world.step(1f / FPS, 10, 10);
             step++;
@@ -157,7 +156,7 @@ public class PhysicsSimulation extends Thread {
         fixture.m_restitution = 0.2f + random.nextFloat() * 0.3f;
 
         WallpaperBody drawBody = new RectWallpaperBody(body, Color.HSVToColor(hsv), xr, yr);
-        drawBodys.add(drawBody);
+        body.m_userData = drawBody;
     }
 
     public void setWalls() {
@@ -181,7 +180,7 @@ public class PhysicsSimulation extends Thread {
         Body body = world.createBody(bodyDef);
         body.createFixture(polygonShape, 5.0f);
         RectWallpaperBody rectWallpaperBody = new RectWallpaperBody(body, Color.rgb(255, 255, 255), width, height);
-        drawBodys.add(rectWallpaperBody);
+        body.m_userData = rectWallpaperBody;
     }
 
     private float getScreenXcm() {
