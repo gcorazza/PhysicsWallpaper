@@ -6,17 +6,13 @@ import android.graphics.Color;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
-import com.example.physicswallpaper.Phunlets.Phunlet;
 import com.example.physicswallpaper.Phunlets.PhunletBuilder;
-import com.example.physicswallpaper.Phunlets.RectPhunlet;
+import com.example.physicswallpaper.Phunlets.PhunletRectangle;
 
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Body;
-import org.jbox2d.dynamics.BodyDef;
 import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
 
 import java.util.ArrayList;
@@ -145,7 +141,7 @@ public class PhysicsSimulation extends Thread {
         float width = random.nextFloat() + 0.2f;
         float height = random.nextFloat() + 0.2f;
 
-        RectPhunlet rectPhunlet = PhunletBuilder.addRect(world, color, posX, posY, width, height, 0, 5);
+        PhunletRectangle rectPhunlet = PhunletBuilder.addRect(world, color, posX, posY, width, height, 0, 5);
         rectPhunlet.getBody().setBullet(true);
         rectPhunlet.getBody().setSleepingAllowed(false);
     }
@@ -172,7 +168,7 @@ public class PhysicsSimulation extends Thread {
     private void setWall(float posX, float posY, float width, float height) {
         PolygonShape polygonShape = new PolygonShape();
         polygonShape.setAsBox(width, height);
-        RectPhunlet wall = PhunletBuilder.addRect(world, WHITE, posX, posY, width, height, 0, 5);
+        PhunletRectangle wall = PhunletBuilder.addRect(world, WHITE, posX, posY, width, height, 0, 5);
         wall.getBody().setType(BodyType.STATIC);
     }
 

@@ -8,11 +8,11 @@ import org.jbox2d.dynamics.Body;
 
 import static java.lang.Math.PI;
 
-public class RectPhunlet extends Phunlet {
+public class PhunletRectangle extends Phunlet {
     private float wr;
     private float hr;
 
-    RectPhunlet(Body body, int color, float w, float h) {
+    PhunletRectangle(Body body, int color, float w, float h) {
         super(color, body);
         this.wr = w;
         this.hr = h;
