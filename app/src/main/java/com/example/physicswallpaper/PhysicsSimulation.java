@@ -63,6 +63,7 @@ public class PhysicsSimulation extends Thread {
                     updateToActualStep();
                     sleep(10);
                 }
+                sleep(100);
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
