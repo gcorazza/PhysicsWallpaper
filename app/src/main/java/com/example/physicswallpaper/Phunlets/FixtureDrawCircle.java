@@ -3,14 +3,14 @@ package com.example.physicswallpaper.Phunlets;
 import android.graphics.Canvas;
 
 import org.jbox2d.common.Transform;
-import org.jbox2d.dynamics.Body;
+import org.jbox2d.dynamics.Fixture;
 
-public class PhunletCircle extends Phunlet {
+public class FixtureDrawCircle extends FixtureDraw {
 
     private float radius;
 
-    PhunletCircle(Body body, int color, float radius) {
-        super(color, body);
+    FixtureDrawCircle(Fixture fixture, int color, float radius) {
+        super(color, fixture);
         this.radius = radius;
     }
 

@@ -1,14 +1,14 @@
 package com.example.physicswallpaper;
 
-import com.example.physicswallpaper.Phunlets.Phunlet;
+import com.example.physicswallpaper.Phunlets.FixtureDraw;
 
 import org.jbox2d.common.Transform;
 
 class ShowObjectData {
     private Transform transform;
-    private Phunlet drawBody;
+    private FixtureDraw drawBody;
 
-    public ShowObjectData(Transform transform, Phunlet drawBody) {
+    public ShowObjectData(Transform transform, FixtureDraw drawBody) {
         this.transform = transform;
         this.drawBody = drawBody;
     }
@@ -17,7 +17,7 @@ class ShowObjectData {
         return transform;
     }
 
-    public Phunlet getDrawBody() {
+    public FixtureDraw getDrawBody() {
         return drawBody;
     }
 }

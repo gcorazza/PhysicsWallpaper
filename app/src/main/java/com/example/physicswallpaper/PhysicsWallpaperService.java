@@ -158,6 +158,7 @@ public class PhysicsWallpaperService extends WallpaperService {
             } finally {
                 if (canvas != null) {
                     System.out.println("surfaceChanged = " + surfaceChanged);
+                    surfaceChanged=false;
                     holder.unlockCanvasAndPost(canvas);
                 }
             }

@@ -6,16 +6,20 @@ import android.graphics.Paint;
 
 
 import org.jbox2d.common.Transform;
+import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
+import org.jbox2d.dynamics.Fixture;
 
-public abstract class Phunlet {
+public abstract class FixtureDraw {
     protected final Paint innerPaint = new Paint();
     protected final Paint outerPaint = new Paint();
-    protected final Body body;
+    protected final Fixture fixture;
     protected final float strokeWidth = 0.1f;
+    protected Vec2 offset = new Vec2();
+    protected float angle = 0;
 
-    Phunlet(int color, Body body) {
-        this.body = body;
+    FixtureDraw(int color, Fixture fixture) {
+        this.fixture = fixture;
         colorSet2(color);
     }
 
@@ -64,12 +68,12 @@ public abstract class Phunlet {
     }
 
     public void draw(Canvas canvas) {
-        draw(canvas, body.getTransform());
+        draw(canvas, fixture.m_body.getTransform());
     }
 
     public abstract void draw(Canvas canvas, Transform transform);
 
     public Body getBody() {
-        return body;
+        return fixture.m_body;
     }
 }
