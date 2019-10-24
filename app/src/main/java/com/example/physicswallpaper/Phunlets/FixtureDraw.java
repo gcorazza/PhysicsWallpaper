@@ -13,12 +13,14 @@ import org.jbox2d.dynamics.Fixture;
 public abstract class FixtureDraw {
     protected final Paint innerPaint = new Paint();
     protected final Paint outerPaint = new Paint();
+    private int color;
     protected final Fixture fixture;
     protected final float strokeWidth = 0.1f;
     protected Vec2 offset = new Vec2();
-    protected float angle = 0;
+    protected float offAngle = 0;
 
     FixtureDraw(int color, Fixture fixture) {
+        this.color = color;
         this.fixture = fixture;
         colorSet2(color);
     }
@@ -75,5 +77,21 @@ public abstract class FixtureDraw {
 
     public Body getBody() {
         return fixture.m_body;
+    }
+
+    public Fixture getFixture() {
+        return fixture;
+    }
+
+    public Vec2 getOffset() {
+        return offset;
+    }
+
+    public float getOffAngle() {
+        return offAngle;
+    }
+
+    public int getColor() {
+        return color;
     }
 }
