@@ -17,8 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import static com.example.physicswallpaper.Phunlets.PhunletBuilder.*;
-import static java.lang.Thread.sleep;
+import static com.example.physicswallpaper.Phunlets.PhunletBuilder.addRect;
+import static com.example.physicswallpaper.Phunlets.PhunletBuilder.createBody;
 
 
 public class PhysicsSimulation extends Thread {
@@ -48,8 +48,8 @@ public class PhysicsSimulation extends Thread {
         addRandomBody(random);
         addRandomBody(random);
         Body body = createBody(world, 2, 2);
-        addRect(body,WHITE,3,1,5, new Vec2(), 2);
-        addRect(body,WHITE,1,3,5);
+        addRect(body, Color.BLUE, 3, 0.5f, 5);
+        addRect(body, Color.BLUE, 0.5f, 3, 5);
         setWalls();
     }
 
