@@ -5,12 +5,21 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.DisplayMetrics;
 
+import com.example.physicswallpaper.WorldBuffer.ShowObjectData;
+import com.example.physicswallpaper.WorldBuffer.WorldBuffer;
+import com.example.physicswallpaper.WorldBuffer.WorldShowState;
+
+import org.jbox2d.callbacks.ContactImpulse;
+import org.jbox2d.callbacks.ContactListener;
+import org.jbox2d.collision.Manifold;
+import org.jbox2d.collision.WorldManifold;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.World;
+import org.jbox2d.dynamics.contacts.Contact;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +30,7 @@ import static com.example.physicswallpaper.Phunlets.PhunletBuilder.addRect;
 import static com.example.physicswallpaper.Phunlets.PhunletBuilder.createBody;
 
 
-public class PhysicsSimulation extends Thread {
+public class PhysicsSimulation extends Thread implements ContactListener {
 
     private final WorldBuffer worldBuffer;
     private World world;
@@ -42,14 +51,15 @@ public class PhysicsSimulation extends Thread {
         this.FPS = FPS;
         worldBuffer = new WorldBuffer();
         world = new World(new Vec2(0, -100));
+        world.setContactListener(this);
         Random random = new Random();
         addRandomBody(random);
         addRandomBody(random);
         addRandomBody(random);
         addRandomBody(random);
         Body body = createBody(world, 2, 2);
-        addRect(body, Color.BLUE, 3, 0.5f, 5);
-        addRect(body, Color.BLUE, 0.5f, 3, 5);
+        addRect(body, Color.BLUE, 0.6f, 0.1f, 5);
+        addRect(body, Color.BLUE, 0.1f, 0.6f, 5);
         setWalls();
     }
 
@@ -196,5 +206,28 @@ public class PhysicsSimulation extends Thread {
 
     public void setGravity(Vec2 gravity) {
         this.gravity = gravity;
+    }
+
+    @Override
+    public void beginContact(Contact contact) {
+
+    }
+
+    @Override
+    public void endContact(Contact contact) {
+
+    }
+
+    @Override
+    public void preSolve(Contact contact, Manifold oldManifold) {
+
+    }
+
+    @Override
+    public void postSolve(Contact contact, ContactImpulse impulse) {
+        WorldManifold worldManifold = new WorldManifold();
+        contact.getWorldManifold(worldManifold);
+        //worldManifold.points;
+        //impulse.
     }
 }

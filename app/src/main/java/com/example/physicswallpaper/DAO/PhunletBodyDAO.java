@@ -9,23 +9,20 @@ import org.jbox2d.dynamics.Fixture;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PhunletDAO {
-    List<PhunletFixtureDAO> fixtures = new ArrayList<>();
+public class PhunletBodyDAO {
+    private List<PhunletFixtureDAO> fixtures = new ArrayList<>();
 
-    public void addFixtureDAO(PhunletFixtureDAO fixtureDAO) {
-        fixtures.add(fixtureDAO);
-    }
-
-    public static PhunletDAO createDAO(Body body) {
-        PhunletDAO phunletDAO = new PhunletDAO();
+    public PhunletBodyDAO(Body body) {
         Fixture fix = body.m_fixtureList;
         while (fix != null) {
             PhunletFixtureDAO fixtureDAO = createFixtureDAO(fix);
-            phunletDAO.addFixtureDAO(fixtureDAO);
+            addFixtureDAO(fixtureDAO);
             fix = fix.m_next;
         }
+    }
 
-        return phunletDAO;
+    public void addFixtureDAO(PhunletFixtureDAO fixtureDAO) {
+        fixtures.add(fixtureDAO);
     }
 
     private static PhunletFixtureDAO createFixtureDAO(Fixture fix) {

@@ -32,8 +32,7 @@ public class PhunletBuilder {
         circleShape.m_p.set(offset);
 
         Fixture fixture = body.createFixture(circleShape, density);
-        FixtureDrawCircle phunletCircle = new FixtureDrawCircle(fixture, color, radius);
-        fixture.m_userData = phunletCircle;
+        fixture.m_userData = new FixtureDrawCircle(fixture, color, radius);
         return body;
     }
 
