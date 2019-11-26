@@ -1,8 +1,8 @@
-package com.example.physicswallpaper;
+package com.example.physicswallpaper.WorldBuffer;
 
 import java.util.List;
 
-class WorldShowState {
+public class WorldShowState {
 
     public List<ShowObjectData> objectShowData;
 

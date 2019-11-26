@@ -1,10 +1,10 @@
-package com.example.physicswallpaper;
+package com.example.physicswallpaper.WorldBuffer;
 
 import com.example.physicswallpaper.Phunlets.FixtureDraw;
 
 import org.jbox2d.common.Transform;
 
-class ShowObjectData {
+public class ShowObjectData {
     private Transform transform;
     private FixtureDraw drawBody;
 
