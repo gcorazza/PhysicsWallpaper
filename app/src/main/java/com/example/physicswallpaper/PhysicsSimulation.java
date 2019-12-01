@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.DisplayMetrics;
 
+import com.example.physicswallpaper.DAO.PhunletBodyDAO;
 import com.example.physicswallpaper.WorldBuffer.ShowObjectData;
 import com.example.physicswallpaper.WorldBuffer.WorldBuffer;
 import com.example.physicswallpaper.WorldBuffer.WorldShowState;
@@ -58,8 +59,12 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         addRandomBody(random);
         addRandomBody(random);
         Body body = createBody(world, 2, 2);
-        addRect(body, Color.BLUE, 0.6f, 0.1f, 5);
-        addRect(body, Color.BLUE, 0.1f, 0.6f, 5);
+        addRect(body, Color.BLUE, 1f, 0.3f, 5);
+        addRect(body, Color.BLUE, 0.3f, 1f, 5);
+        PhunletBodyDAO phunletBodyDAO = new PhunletBodyDAO(body);
+        phunletBodyDAO.save("cross");
+        PhunletBodyDAO cross = PhunletBodyDAO.load("cross");
+        cross.addInWorld(world);
         setWalls();
     }
 

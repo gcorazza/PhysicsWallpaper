@@ -18,4 +18,8 @@ public class FixtureDrawCircle extends FixtureDraw {
     public void draw(Canvas canvas, Transform transform) {
         //canvas.drawArc();
     }
+
+    public float getRadius() {
+        return radius;
+    }
 }

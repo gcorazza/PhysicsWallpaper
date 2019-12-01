@@ -2,12 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.physicswallpaper">
 
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:name="com.example.physicswallpaper.ContextGetter"
         android:theme="@style/AppTheme">
         <meta-data
             android:name="com.google.android.actions"
@@ -15,16 +17,16 @@
 
         <service
             android:name=".PhysicsWallpaperService"
+            android:exported="true"
             android:label="PhysicsWallpaper"
-            android:permission="android.permission.BIND_WALLPAPER"
-            android:exported="true">
+            android:permission="android.permission.BIND_WALLPAPER">
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
             </intent-filter>
 
             <meta-data
                 android:name="android.service.wallpaper"
-                android:resource="@xml/wallpaperphysics"/>
+                android:resource="@xml/wallpaperphysics" />
         </service>
         <activity
             android:name="SetWallpaperActivity"
@@ -45,6 +47,7 @@
                     android:scheme="http" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
