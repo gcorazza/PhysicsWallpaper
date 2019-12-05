@@ -47,4 +47,14 @@ public class PhunletBuilder {
         bodyDef.type = BodyType.DYNAMIC;
         return world.createBody(bodyDef);
     }
+
+    public static Body createParticle(World world, int color, Vec2 pos, Vec2 linearSpeed) {
+        Body body = createBody(world, pos, 0);
+        body.setFixedRotation(true);
+        CircleShape circleShape = new CircleShape();
+        circleShape.m_radius = 0.01f;
+        Fixture fixture = body.createFixture(circleShape, 5);
+        fixture.m_userData = new FixtureParticleDraw(color, fixture);
+        return body;
+    }
 }
