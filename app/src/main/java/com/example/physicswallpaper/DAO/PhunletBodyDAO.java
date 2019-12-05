@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Scanner;
 
 import static com.example.physicswallpaper.ContextGetter.getAppContext;
+import static com.example.physicswallpaper.Phunlets.PhunletBuilder.addCircle;
+import static com.example.physicswallpaper.Phunlets.PhunletBuilder.addRect;
+import static com.example.physicswallpaper.Phunlets.PhunletBuilder.createBody;
 
 public class PhunletBodyDAO {
     private List<PhunletFixtureDAO> fixtures = new ArrayList<>();
@@ -45,7 +48,7 @@ public class PhunletBodyDAO {
             shape = Shape.Circle;
             data = new float[]{((FixtureDrawCircle) fixtureDraw).getRadius()};
         } else {
-            System.err.println("No Shape found for:" + fixtureDraw.toString());
+            throw new RuntimeException("No Shape found for:" + fixtureDraw.toString());
         }
 
         return new PhunletFixtureDAO(
@@ -91,6 +94,16 @@ public class PhunletBodyDAO {
     }
 
     public void addInWorld(World world, Vec2 pos, float angle) {
-
+        Body body = createBody(world, pos, angle);
+        for (PhunletFixtureDAO fixture : fixtures) {
+            switch (fixture.getShape()) {
+                case Circle:
+                    addCircle(body, fixture.color, fixture.data[0], fixture.density, fixture.offset);
+                    break;
+                case Rect:
+                    addRect(body, fixture.color, fixture.data[0], fixture.data[1], fixture.density, fixture.offset, fixture.offAngle);
+                    break;
+            }
+        }
     }
 }

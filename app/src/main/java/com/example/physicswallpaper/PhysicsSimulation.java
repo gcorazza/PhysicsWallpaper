@@ -29,6 +29,7 @@ import java.util.Random;
 
 import static com.example.physicswallpaper.Phunlets.PhunletBuilder.addRect;
 import static com.example.physicswallpaper.Phunlets.PhunletBuilder.createBody;
+import static java.lang.Math.toDegrees;
 
 
 public class PhysicsSimulation extends Thread implements ContactListener {
@@ -51,20 +52,20 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     public PhysicsSimulation(float FPS) {
         this.FPS = FPS;
         worldBuffer = new WorldBuffer();
-        world = new World(new Vec2(0, -100));
+        world = new World(new Vec2());
         world.setContactListener(this);
         Random random = new Random();
-        addRandomBody(random);
-        addRandomBody(random);
-        addRandomBody(random);
-        addRandomBody(random);
-        Body body = createBody(world, 2, 2);
+        /*
+        Body body = createBody(world, 2, 2, 0);
         addRect(body, Color.BLUE, 1f, 0.3f, 5);
         addRect(body, Color.BLUE, 0.3f, 1f, 5);
         PhunletBodyDAO phunletBodyDAO = new PhunletBodyDAO(body);
-        phunletBodyDAO.save("cross");
+        phunletBodyDAO.save("cross");*/
         PhunletBodyDAO cross = PhunletBodyDAO.load("cross");
-        cross.addInWorld(world);
+        for (int i = 0; i < 5; i++) {
+            cross.addInWorld(world, new Vec2(i * 2, i * 2), (float) toDegrees(i * 10));
+        }
+        cross.addInWorld(world, new Vec2(2f, 2f), (float) toDegrees(45));
         setWalls();
     }
 
@@ -98,7 +99,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         int shouldBeInStep = shouldBeInStep();
         for (int i = step; i < shouldBeInStep; i++) {
             worldBuffer.saveState(world.getBodyList());
-            world.setGravity(calcAccelerationVec().add(gravity));
+            //world.setGravity(calcAccelerationVec().add(gravity));
             world.step(1f / FPS, 10, 10);
             step++;
         }
@@ -156,7 +157,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         float width = random.nextFloat() + 0.2f;
         float height = random.nextFloat() + 0.2f;
 
-        Body body = addRect(createBody(world, posX, posY), color, width, height, 5);
+        Body body = addRect(createBody(world, posX, posY, 0), color, width, height, 5);
         body.setBullet(true);
         body.setSleepingAllowed(false);
     }
@@ -183,7 +184,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     private void setWall(float posX, float posY, float width, float height) {
         PolygonShape polygonShape = new PolygonShape();
         polygonShape.setAsBox(width, height);
-        Body body = addRect(createBody(world, posX, posY), WHITE, width, height, 5);
+        Body body = addRect(createBody(world, posX, posY, 0), WHITE, width, height, 5);
         body.setType(BodyType.STATIC);
     }
 

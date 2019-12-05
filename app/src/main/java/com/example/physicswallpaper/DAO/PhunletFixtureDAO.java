@@ -32,4 +32,28 @@ public class PhunletFixtureDAO {
                 PhunletBuilder.addCircle(body, color, data[0], density, offset);
         }
     }
+
+    public Vec2 getOffset() {
+        return offset;
+    }
+
+    public float getOffAngle() {
+        return offAngle;
+    }
+
+    public float getDensity() {
+        return density;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public float[] getData() {
+        return data;
+    }
+
+    public Shape getShape() {
+        return shape;
+    }
 }

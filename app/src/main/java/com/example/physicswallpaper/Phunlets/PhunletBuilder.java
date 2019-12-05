@@ -11,11 +11,11 @@ import org.jbox2d.dynamics.World;
 
 public class PhunletBuilder {
 
-    public static Body addRect(Body body, int color, float width, float height, float density) {
+    public static Fixture addRect(Body body, int color, float width, float height, float density) {
         return addRect(body, color, width, height, density, new Vec2(), 0);
     }
 
-    public static Body addRect(Body body, int color, float width, float height, float density, Vec2 offset, float offAngle) {
+    public static Fixture addRect(Body body, int color, float width, float height, float density, Vec2 offset, float offAngle) {
         PolygonShape polygonShape = new PolygonShape();
         polygonShape.setAsBox(width, height, offset, offAngle);
         Fixture fixture = body.createFixture(polygonShape, density);
@@ -23,26 +23,27 @@ public class PhunletBuilder {
         phunletRectangle.offAngle = offAngle;
         phunletRectangle.offset = offset;
         fixture.m_userData = phunletRectangle;
-        return body;
+        return fixture;
     }
 
-    public static Body addCircle(Body body, int color, float radius, float density, Vec2 offset) {
+    public static Fixture addCircle(Body body, int color, float radius, float density, Vec2 offset) {
         CircleShape circleShape = new CircleShape();
         circleShape.m_radius = radius;
         circleShape.m_p.set(offset);
 
         Fixture fixture = body.createFixture(circleShape, density);
         fixture.m_userData = new FixtureDrawCircle(fixture, color, radius);
-        return body;
+        return fixture;
     }
 
-    public static Body createBody(World world, float posX, float posY) {
-        return createBody(world, new Vec2(posX, posY));
+    public static Body createBody(World world, float posX, float posY, float angle) {
+        return createBody(world, new Vec2(posX, posY), angle);
     }
 
-    public static Body createBody(World world, Vec2 pos) {
+    public static Body createBody(World world, Vec2 pos, float angle) {
         BodyDef bodyDef = new BodyDef();
         bodyDef.position.set(pos);
+        bodyDef.angle = angle;
         bodyDef.type = BodyType.DYNAMIC;
         return world.createBody(bodyDef);
     }
