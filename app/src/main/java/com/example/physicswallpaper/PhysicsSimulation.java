@@ -6,6 +6,9 @@ import android.graphics.Color;
 import android.util.DisplayMetrics;
 
 import com.example.physicswallpaper.DAO.PhunletBodyDAO;
+import com.example.physicswallpaper.Phunlets.FixtureDraw;
+import com.example.physicswallpaper.Phunlets.FixtureParticleDraw;
+import com.example.physicswallpaper.Phunlets.PhunletBuilder;
 import com.example.physicswallpaper.WorldBuffer.ShowObjectData;
 import com.example.physicswallpaper.WorldBuffer.WorldBuffer;
 import com.example.physicswallpaper.WorldBuffer.WorldShowState;
@@ -48,6 +51,8 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     private Vec2 gravity = new Vec2();
     private Vec2 lastMoveAcceleration = new Vec2();
     private int WHITE = Color.rgb(255, 255, 255);
+    private List<Body> particles = Collections.synchronizedList(new ArrayList<>());
+    private List<PostSolve> postSolves = new ArrayList<>();
 
     public PhysicsSimulation(float FPS) {
         this.FPS = FPS;
@@ -75,7 +80,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
             while (true) {
                 while (!isPaused()) {
                     updateToActualStep();
-                    sleep((long) (1000f/FPS));
+                    sleep((long) (1000f / FPS));
                 }
                 sleep(100);
             }
@@ -101,6 +106,8 @@ public class PhysicsSimulation extends Thread implements ContactListener {
             worldBuffer.saveState(world.getBodyList());
             //world.setGravity(calcAccelerationVec().add(gravity));
             world.step(1f / FPS, 10, 10);
+            postSolves.forEach(postSolve -> processPostSolves(postSolve.contact, postSolve.contactImpulse));
+            clearDeadParticles();
             step++;
         }
     }
@@ -157,7 +164,8 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         float width = random.nextFloat() + 0.2f;
         float height = random.nextFloat() + 0.2f;
 
-        Body body = addRect(createBody(world, posX, posY, 0), color, width, height, 5);
+        Body body = createBody(world, posX, posY, 0);
+        addRect(body, color, width, height, 5);
         body.setBullet(true);
         body.setSleepingAllowed(false);
     }
@@ -184,7 +192,8 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     private void setWall(float posX, float posY, float width, float height) {
         PolygonShape polygonShape = new PolygonShape();
         polygonShape.setAsBox(width, height);
-        Body body = addRect(createBody(world, posX, posY, 0), WHITE, width, height, 5);
+        Body body = createBody(world, posX, posY, 0);
+        addRect(body, WHITE, width, height, 5);
         body.setType(BodyType.STATIC);
     }
 
@@ -229,11 +238,43 @@ public class PhysicsSimulation extends Thread implements ContactListener {
 
     }
 
-    @Override
-    public void postSolve(Contact contact, ContactImpulse impulse) {
+    private void processPostSolves(Contact contact, ContactImpulse impulse) {
         WorldManifold worldManifold = new WorldManifold();
         contact.getWorldManifold(worldManifold);
-        //worldManifold.points;
-        //impulse.
+        Vec2[] points = worldManifold.points;
+        float normalImpuls = impulse.normalImpulses[0];
+        int color = ((FixtureDraw) contact.getFixtureA().m_userData).getColor();
+        for (Vec2 point : points) {
+            Body particle = PhunletBuilder.createParticle(world, color, point, worldManifold.normal.mul(normalImpuls));
+            particles.add(particle);
+        }
+    }
+
+    @Override
+    public void postSolve(Contact contact, ContactImpulse impulse) {
+        postSolves.add(new PostSolve(contact, impulse));
+    }
+
+    private void clearDeadParticles() {
+        ArrayList<Body> del = new ArrayList<>();
+        for (Body particle : particles) {
+            if (((FixtureParticleDraw) particle.m_fixtureList.m_userData).isDead()) {
+                del.add(particle);
+            }
+        }
+        particles.removeAll(del);
+        for (Body body : del) {
+            world.destroyBody(body);
+        }
+    }
+
+    private class PostSolve {
+        Contact contact;
+        ContactImpulse contactImpulse;
+
+        public PostSolve(Contact contact, ContactImpulse contactImpulse) {
+            this.contact = contact;
+            this.contactImpulse = contactImpulse;
+        }
     }
 }

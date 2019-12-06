@@ -19,18 +19,26 @@ public class FixtureParticleDraw extends FixtureDraw {
 
     @Override
     public void draw(Canvas canvas, Transform transform) {
+        int alpha = alpha();
+        if (alpha > 255) {
+            return;
+        }
         canvas.save();
         canvas.translate(transform.p.x, transform.p.y);
         canvas.rotate((float) (toDegrees(transform.q.getAngle())));
         canvas.translate(offset.x, offset.y);
         canvas.rotate((float) toDegrees(offAngle));
         float pw = 0.1f;
-        innerPaint.setAlpha(255 - alpha());
+        innerPaint.setAlpha(255 - alpha);
         canvas.drawRect(new RectF(-pw, -pw, pw, pw), innerPaint);
         canvas.restore();
     }
 
     private int alpha() {
         return (int) (((float) (System.currentTimeMillis() - startTime)) / timeToLiveMs * 255);
+    }
+
+    public boolean isDead() {
+        return alpha() > 255;
     }
 }
