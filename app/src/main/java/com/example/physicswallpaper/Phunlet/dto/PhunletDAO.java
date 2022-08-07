@@ -1,8 +1,8 @@
-package com.example.physicswallpaper.DAO;
+package com.example.physicswallpaper.Phunlet.dto;
 
-import com.example.physicswallpaper.Phunlets.FixtureDraw;
-import com.example.physicswallpaper.Phunlets.FixtureDrawCircle;
-import com.example.physicswallpaper.Phunlets.FixtureDrawRectangle;
+import com.example.physicswallpaper.Phunlet.draw.FixtureDraw;
+import com.example.physicswallpaper.Phunlet.draw.FixtureDrawCircle;
+import com.example.physicswallpaper.Phunlet.draw.FixtureDrawRectangle;
 import com.google.gson.Gson;
 
 import org.jbox2d.common.Vec2;
@@ -14,19 +14,22 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 import static com.example.physicswallpaper.ContextGetter.getAppContext;
-import static com.example.physicswallpaper.Phunlets.PhunletBuilder.addCircle;
-import static com.example.physicswallpaper.Phunlets.PhunletBuilder.addRect;
-import static com.example.physicswallpaper.Phunlets.PhunletBuilder.createBody;
+import static com.example.physicswallpaper.Phunlet.PhunletBuilder.addCircle;
+import static com.example.physicswallpaper.Phunlet.PhunletBuilder.addRect;
+import static com.example.physicswallpaper.Phunlet.PhunletBuilder.createBody;
 
-public class PhunletBodyDAO {
-    private List<PhunletFixtureDAO> fixtures = new ArrayList<>();
+import android.util.Log;
 
-    public PhunletBodyDAO(Body body) {
+public class PhunletDAO implements Serializable {
+    private final List<PhunletFixtureDAO> fixtures = new ArrayList<>();
+
+    public PhunletDAO(Body body) {
         Fixture fix = body.m_fixtureList;
         while (fix != null) {
             PhunletFixtureDAO fixtureDAO = createFixtureDAO(fix);
@@ -37,8 +40,8 @@ public class PhunletBodyDAO {
 
     private PhunletFixtureDAO createFixtureDAO(Fixture fix) {
         FixtureDraw fixtureDraw = ((FixtureDraw) fix.m_userData);
-        Shape shape = null;
-        float[] data = null;
+        Shape shape;
+        float[] data;
 
         if (fixtureDraw instanceof FixtureDrawRectangle) {
             shape = Shape.Rect;
@@ -63,8 +66,10 @@ public class PhunletBodyDAO {
 
     public void save(String name) {
         String json = new Gson().toJson(this);
+        Log.d("gson", json);
         String filesDirPath = getAppContext().getFilesDir().getAbsolutePath();
         String filePath = filesDirPath + "/" + name + ".pl";
+        System.out.println("filePath = " + filePath);
         File file = new File(filePath);
         try {
             if (file.createNewFile()) {
@@ -79,7 +84,7 @@ public class PhunletBodyDAO {
         }
     }
 
-    public static PhunletBodyDAO load(String name) {
+    public static PhunletDAO load(String name) {
         String filesDirPath = getAppContext().getFilesDir().getAbsolutePath();
         String filePath = filesDirPath + "/" + name + ".pl";
         File file = new File(filePath);
@@ -89,19 +94,19 @@ public class PhunletBodyDAO {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        return new Gson().fromJson(json, PhunletBodyDAO.class);
+        return new Gson().fromJson(json, PhunletDAO.class);
 
     }
 
     public void addInWorld(World world, Vec2 pos, float angle) {
         Body body = createBody(world, pos, angle);
-        for (PhunletFixtureDAO fixture : fixtures) {
-            switch (fixture.getShape()) {
+        for (PhunletFixtureDAO dao : fixtures) {
+            switch (dao.getShape()) {
                 case Circle:
-                    addCircle(body, fixture.color, fixture.data[0], fixture.density, fixture.offset);
+                    addCircle(body, dao.color, dao.data[0], dao.density, dao.offset);
                     break;
                 case Rect:
-                    addRect(body, fixture.color, fixture.data[0], fixture.data[1], fixture.density, fixture.offset, fixture.offAngle);
+                    addRect(body, dao.color, dao.data[0], dao.data[1], dao.density, dao.offset, dao.offAngle);
                     break;
             }
         }

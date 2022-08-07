@@ -5,23 +5,21 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.util.DisplayMetrics;
 
-import com.example.physicswallpaper.DAO.PhunletBodyDAO;
-import com.example.physicswallpaper.Phunlets.FixtureDraw;
-import com.example.physicswallpaper.Phunlets.FixtureParticleDraw;
-import com.example.physicswallpaper.Phunlets.PhunletBuilder;
-import com.example.physicswallpaper.WorldBuffer.ShowObjectData;
-import com.example.physicswallpaper.WorldBuffer.WorldBuffer;
-import com.example.physicswallpaper.WorldBuffer.WorldShowState;
+import com.example.physicswallpaper.Phunlet.dto.PhunletDAO;
+import com.example.physicswallpaper.Phunlet.draw.FixtureDraw;
+import com.example.physicswallpaper.Phunlet.PhunletBuilder;
+import com.example.physicswallpaper.WorldBuffer.ObjectRenderData;
+import com.example.physicswallpaper.WorldBuffer.WorldRenderData;
 
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.callbacks.ContactListener;
 import org.jbox2d.collision.Manifold;
-import org.jbox2d.collision.WorldManifold;
 import org.jbox2d.collision.shapes.PolygonShape;
 import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.contacts.Contact;
 
@@ -30,57 +28,61 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import static com.example.physicswallpaper.Phunlets.PhunletBuilder.addRect;
-import static com.example.physicswallpaper.Phunlets.PhunletBuilder.createBody;
-import static java.lang.Math.toDegrees;
+import static com.example.physicswallpaper.Phunlet.PhunletBuilder.addRect;
+import static com.example.physicswallpaper.Phunlet.PhunletBuilder.createBody;
 
 
 public class PhysicsSimulation extends Thread implements ContactListener {
 
-    private final WorldBuffer worldBuffer;
-    private World world;
-    private long startTime = System.currentTimeMillis();
+    private final World world;
 
-    private final float FPS;
-    private int step;
-    private WorldShowState lastToShow;
-    private int pauseStep = -1;
-    private long startPause;
-    private final int wallWidth = 3;
-    private List<Vec2> moveAcceleration = Collections.synchronizedList(new ArrayList<>());
-    private Vec2 gravity = new Vec2();
+    private final float sleep;
+    private WorldRenderData lastToShow;
+    private boolean paused = false;
+    private final int wallThickness = 3;
+    private final List<Vec2> moveAcceleration = Collections.synchronizedList(new ArrayList<>());
     private Vec2 lastMoveAcceleration = new Vec2();
-    private int WHITE = Color.rgb(255, 255, 255);
-    private List<Body> particles = Collections.synchronizedList(new ArrayList<>());
-    private List<PostSolve> postSolves = new ArrayList<>();
+    private final int WHITE = Color.rgb(255, 255, 255);
+    private final List<PostSolve> postSolves = new ArrayList<>();
+    private final int velocityIterations = 100;
+    private final int positionIterations = 100;
+    private long lastPhysicsUpdate;
+    private Vec2 gravity = new Vec2();
 
-    public PhysicsSimulation(float FPS) {
-        this.FPS = FPS;
-        worldBuffer = new WorldBuffer();
+    public PhysicsSimulation(float sleep) {
+        this.sleep = sleep;
         world = new World(new Vec2());
         world.setContactListener(this);
-        Random random = new Random();
         /*
         Body body = createBody(world, 2, 2, 0);
         addRect(body, Color.BLUE, 1f, 0.3f, 5);
         addRect(body, Color.BLUE, 0.3f, 1f, 5);
         PhunletBodyDAO phunletBodyDAO = new PhunletBodyDAO(body);
         phunletBodyDAO.save("cross");*/
-        PhunletBodyDAO cross = PhunletBodyDAO.load("cross");
-        for (int i = 0; i < 5; i++) {
-            cross.addInWorld(world, new Vec2(i * 2, i * 2), (float) toDegrees(i * 10));
+//        PhunletDAO cross = PhunletDAO.load("cross");
+//        for (int i = 0; i < 5; i++) {
+//            cross.addInWorld(world, new Vec2(i * 2, i * 2), (float) toDegrees(i * 10));
+//        }
+//        cross.addInWorld(world, new Vec2(2f, 2f), (float) toDegrees(45));
+        Body body = createBody(world, 5, 5, 0);
+        PhunletBuilder.addCircle(body, WHITE, 1, 10, new Vec2());
+        PhunletDAO phunletDAO = new PhunletDAO(body);
+        phunletDAO.save("circle");
+        Random random = new Random();
+        for (int i = 0; i < 10; i++) {
+            addRandomBody(random);
         }
-        cross.addInWorld(world, new Vec2(2f, 2f), (float) toDegrees(45));
         setWalls();
     }
 
     @Override
     public void run() {
         try {
+            lastPhysicsUpdate = System.currentTimeMillis();
             while (true) {
                 while (!isPaused()) {
-                    updateToActualStep();
-                    sleep((long) (1000f / FPS));
+                    updatePhysics();
+                    sleep((long) sleep);
                 }
                 sleep(100);
             }
@@ -90,26 +92,37 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     }
 
     public void pausePhysics() {
-        pauseStep = shouldBeInStep();
-        startPause = System.currentTimeMillis();
+        paused = true;
     }
 
     public void resumePhysics() {
-        pauseStep = -1;
-        if (startPause != 0)
-            startTime += System.currentTimeMillis() - startPause;
+        paused = false;
+        lastPhysicsUpdate = System.currentTimeMillis();
     }
 
-    public void updateToActualStep() {
-        int shouldBeInStep = shouldBeInStep();
-        for (int i = step; i < shouldBeInStep; i++) {
-            worldBuffer.saveState(world.getBodyList());
-            //world.setGravity(calcAccelerationVec().add(gravity));
-            world.step(1f / FPS, 10, 10);
-            postSolves.forEach(postSolve -> processPostSolves(postSolve.contact, postSolve.contactImpulse));
-            clearDeadParticles();
-            step++;
+    public void updatePhysics() {
+        float dt = ((float) (System.currentTimeMillis() - lastPhysicsUpdate)) / 1000;
+        world.step(dt, velocityIterations, positionIterations);
+        Vec2 accel = calcAccelerationVec();
+        world.setGravity(gravity.add(accel));
+        postSolves.forEach(postSolve -> processPostSolves(postSolve.contact, postSolve.contactImpulse));
+        lastPhysicsUpdate = System.currentTimeMillis();
+        lastToShow = saveRenderDataFromWorld(world.getBodyList());
+    }
+
+    public WorldRenderData saveRenderDataFromWorld(Body bodyList) {
+        List<ObjectRenderData> data = new ArrayList<>();
+
+        while (bodyList != null) {
+            Fixture fixtureList = bodyList.m_fixtureList;
+            while (fixtureList != null) {
+                FixtureDraw drawBody = (FixtureDraw) fixtureList.m_userData;
+                data.add(new ObjectRenderData(new Transform(drawBody.getBody().getTransform()), drawBody));
+                fixtureList = fixtureList.m_next;
+            }
+            bodyList = bodyList.m_next;
         }
+        return new WorldRenderData(data);
     }
 
     public Vec2 calcAccelerationVec() {
@@ -117,40 +130,20 @@ public class PhysicsSimulation extends Thread implements ContactListener {
             return lastMoveAcceleration;
         }
         final Vec2[] vr = {new Vec2()};
-        moveAcceleration.forEach((v) -> {
-            vr[0] = vr[0].add(v);
-        });
+        moveAcceleration.forEach((v) -> vr[0] = vr[0].add(v));
         lastMoveAcceleration = vr[0].mul(1f / moveAcceleration.size());
         moveAcceleration.clear();
         return vr[0];
     }
 
-    public void draw(Canvas canvas, float timeBehindms) {
+    public void draw(Canvas canvas) {
         canvas.drawColor(Color.BLACK);
-        int stepToShow = (int) (shouldBeInStep() - timeBehindms / 1000 * FPS);
-        WorldShowState toShow = worldBuffer.getAndRemoveBefores(stepToShow);
 
-        if (toShow != null) {
-            lastToShow = toShow;
-        } else {
-            toShow = lastToShow;
-        }
-
-        if (toShow == null)
-            return;
-
-        for (ShowObjectData objectShowDatum : toShow.objectShowData) {
+        for (ObjectRenderData objectShowDatum : lastToShow.objectShowData) {
             Transform transform = objectShowDatum.getTransform();
             objectShowDatum.getDrawBody().draw(canvas, transform);
         }
 
-    }
-
-    private int shouldBeInStep() {
-        if (pauseStep == -1)
-            return (int) ((float) (System.currentTimeMillis() - startTime) * (FPS / 1000));
-        else
-            return pauseStep;
     }
 
     private void addRandomBody(Random random) {
@@ -181,12 +174,12 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     public void setWalls() {
         float screenXcm = getScreenXcm();
         float screenYcm = getScreenYcm();
-        float wallTight = wallWidth;
+        float wallTight = wallThickness;
 
-        setWall(-wallTight, screenYcm / 2, wallWidth, wallWidth + screenYcm); //left Wall
-        setWall(screenXcm + wallTight, screenYcm / 2, wallWidth, wallWidth + screenYcm); //right Wall
-        setWall(screenXcm / 2, -wallTight, screenXcm + wallWidth, wallWidth); //down Wall
-        setWall(screenXcm / 2, screenYcm + wallTight, screenXcm + wallWidth, wallWidth); //top Wall
+        setWall(-wallTight, screenYcm / 2, wallThickness, wallThickness + screenYcm); //left Wall
+        setWall(screenXcm + wallTight, screenYcm / 2, wallThickness, wallThickness + screenYcm); //right Wall
+        setWall(screenXcm / 2, -wallTight, screenXcm + wallThickness, wallThickness); //down Wall
+        setWall(screenXcm / 2, screenYcm + wallTight, screenXcm + wallThickness, wallThickness); //top Wall
     }
 
     private void setWall(float posX, float posY, float width, float height) {
@@ -216,7 +209,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     }
 
     private boolean isPaused() {
-        return pauseStep != -1;
+        return paused;
     }
 
     public void setGravity(Vec2 gravity) {
@@ -239,33 +232,16 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     }
 
     private void processPostSolves(Contact contact, ContactImpulse impulse) {
-        WorldManifold worldManifold = new WorldManifold();
-        contact.getWorldManifold(worldManifold);
-        Vec2[] points = worldManifold.points;
-        float normalImpuls = impulse.normalImpulses[0];
-        int color = ((FixtureDraw) contact.getFixtureA().m_userData).getColor();
-        for (Vec2 point : points) {
-            Body particle = PhunletBuilder.createParticle(world, color, point, worldManifold.normal.mul(normalImpuls));
-            particles.add(particle);
-        }
+//        WorldManifold worldManifold = new WorldManifold();
+//        contact.getWorldManifold(worldManifold);
+//        Vec2[] points = worldManifold.points;
+//        float normalImpuls = impulse.normalImpulses[0];
+//        int color = ((FixtureDraw) contact.getFixtureA().m_userData).getColor();
     }
 
     @Override
     public void postSolve(Contact contact, ContactImpulse impulse) {
         postSolves.add(new PostSolve(contact, impulse));
-    }
-
-    private void clearDeadParticles() {
-        ArrayList<Body> del = new ArrayList<>();
-        for (Body particle : particles) {
-            if (((FixtureParticleDraw) particle.m_fixtureList.m_userData).isDead()) {
-                del.add(particle);
-            }
-        }
-        particles.removeAll(del);
-        for (Body body : del) {
-            world.destroyBody(body);
-        }
     }
 
     private class PostSolve {

@@ -1,4 +1,4 @@
-package com.example.physicswallpaper.Phunlets;
+package com.example.physicswallpaper.Phunlet.draw;
 
 import android.graphics.Canvas;
 
@@ -11,7 +11,7 @@ public class FixtureDrawCircle extends FixtureDraw {
 
     private float radius;
 
-    FixtureDrawCircle(Fixture fixture, int color, float radius) {
+    public FixtureDrawCircle(Fixture fixture, int color, float radius) {
         super(color, fixture);
         this.radius = radius;
     }

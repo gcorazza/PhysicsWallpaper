@@ -1,18 +1,20 @@
-package com.example.physicswallpaper.DAO;
+package com.example.physicswallpaper.Phunlet.dto;
 
-import com.example.physicswallpaper.Phunlets.PhunletBuilder;
+import com.example.physicswallpaper.Phunlet.PhunletBuilder;
 
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.World;
 
-public class PhunletFixtureDAO {
+import java.io.Serializable;
+
+public class PhunletFixtureDAO implements Serializable {
     protected Vec2 offset;
     protected float offAngle;
     protected float density;
     protected int color;
     protected float[] data;
-    private Shape shape;
+    private final Shape shape;
 
     public PhunletFixtureDAO(Vec2 offset, float offAngle, float density, int color, float[] data, Shape shape) {
         this.offset = offset;

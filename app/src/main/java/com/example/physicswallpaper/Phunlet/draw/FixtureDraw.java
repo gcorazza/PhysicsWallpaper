@@ -1,4 +1,4 @@
-package com.example.physicswallpaper.Phunlets;
+package com.example.physicswallpaper.Phunlet.draw;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -16,8 +16,8 @@ public abstract class FixtureDraw {
     private int color;
     protected final Fixture fixture;
     protected final float strokeWidth = 0.1f;
-    protected Vec2 offset = new Vec2();
-    protected float offAngle = 0;
+    public Vec2 offset = new Vec2();
+    public float offAngle = 0;
 
     FixtureDraw(int color, Fixture fixture) {
         this.color = color;

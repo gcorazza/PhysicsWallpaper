@@ -26,7 +26,7 @@ public class PhysicsWallpaperService extends WallpaperService {
     }
 
     private class PhysicsWallpaperEngine extends Engine {
-        private final Runnable draw = () -> draw();
+        private final Runnable draw = this::draw;
 
         Handler handler = new Handler();
         private boolean visible = true;
@@ -46,7 +46,7 @@ public class PhysicsWallpaperService extends WallpaperService {
             int accelerationStrength = 30;
             int gravityStrength = 10;
 
-            physicsSimulation = new PhysicsSimulation(FPS);
+            physicsSimulation = new PhysicsSimulation(20);
             gravityListener = new SensorEventListener() {
                 @Override
                 public void onSensorChanged(SensorEvent sensorEvent) {
@@ -153,7 +153,7 @@ public class PhysicsWallpaperService extends WallpaperService {
                 canvas = holder.lockCanvas();
                 if (canvas != null) {
                     setCanvasToCmScaleAndSetLetCornerAs00(canvas);
-                    physicsSimulation.draw(canvas, timeBehindms);
+                    physicsSimulation.draw(canvas);
                 }
             } finally {
                 if (canvas != null) {

@@ -1,4 +1,4 @@
-package com.example.physicswallpaper.Phunlets;
+package com.example.physicswallpaper.Phunlet.draw;
 
 import android.graphics.Canvas;
 import android.graphics.RectF;
@@ -13,7 +13,7 @@ public class FixtureDrawRectangle extends FixtureDraw {
 
     private Vec2 dim;
 
-    FixtureDrawRectangle(Fixture fixture, int color, float w, float h) {
+    public FixtureDrawRectangle(Fixture fixture, int color, float w, float h) {
         this(fixture, color, new Vec2(w, h));
     }
 
