@@ -106,6 +106,7 @@ public class PhysicsWallpaperService extends WallpaperService {
 
         private void setVisible() {
             registerSensors();
+            handler.post(draw);
             physicsSimulation.resumePhysics();
         }
 
