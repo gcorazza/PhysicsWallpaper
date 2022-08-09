@@ -4,6 +4,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -34,7 +37,6 @@ public class PhysicsWallpaperService extends WallpaperService {
         private float FPS = 40;
         private PhysicsSimulation physicsSimulation;
         private int timeBehindms = 30;
-        private boolean surfaceChanged;
         private SensorEventListener gravityListener;
         private SensorEventListener accelerationListener;
 
@@ -92,10 +94,10 @@ public class PhysicsWallpaperService extends WallpaperService {
         } //jeremy
 
         @Override
-        public void onVisibilityChanged(boolean visible) {
-            Log.d("visibility", visible+"");
-            this.visible = visible;
-            if (visible) {
+        public void onVisibilityChanged(boolean visibility) {
+            Log.d("visibility", visibility + "");
+            this.visible = visibility;
+            if (visibility) {
                 setVisible();
             } else {
                 setUnvisible();
@@ -120,7 +122,7 @@ public class PhysicsWallpaperService extends WallpaperService {
 
         @Override
         public void onSurfaceDestroyed(SurfaceHolder holder) {
-            Log.d("destroed", "destroed");
+            Log.d("destroyed", "destroyed");
             super.onSurfaceDestroyed(holder);
             this.visible = false;
         }
@@ -138,36 +140,45 @@ public class PhysicsWallpaperService extends WallpaperService {
         @Override
         public void onSurfaceChanged(SurfaceHolder holder, int format, int width, int height) {
             super.onSurfaceChanged(holder, format, width, height);
-            Log.d("changed", "chnged surface size");
-            surfaceChanged = true;
+            Log.d("changed", "changed surface size");
         }
 
         private void draw() {
-            handler.postDelayed(draw, (long) (1000f / FPS));
+            handler.removeCallbacks(draw);
             if (!visible)
                 return;
+            handler.postDelayed(draw, (long) (1000f / FPS));
 
             SurfaceHolder holder = getSurfaceHolder();
             Canvas canvas = null;
+            Paint paint = new Paint();
+            paint.setColor(Color.rgb(255, 255, 0));
+            paint.setStrokeWidth(0.5f);
             try {
                 canvas = holder.lockCanvas();
                 if (canvas != null) {
-                    setCanvasToCmScaleAndSetLetCornerAs00(canvas);
-                    physicsSimulation.draw(canvas);
+                    Matrix baseMatrix = canvas.getMatrix();
+                    Matrix matrixCanvasToCmScaleAndSetLeftDownCornerAs00 = getMatrixCanvasToCmScaleAndSetLeftDownCornerAs00();
+                    Matrix myMatrix = new Matrix(baseMatrix);
+                    myMatrix.preConcat(matrixCanvasToCmScaleAndSetLeftDownCornerAs00);
+
+                    canvas.drawLine(1, 0, 1, 1, paint);
+                    canvas.drawLine(5, 0, 1, 1, paint);
+                    physicsSimulation.draw(canvas, myMatrix);
                 }
             } finally {
                 if (canvas != null) {
-                    System.out.println("surfaceChanged = " + surfaceChanged);
-                    surfaceChanged=false;
                     holder.unlockCanvasAndPost(canvas);
                 }
             }
         }
 
-        private void setCanvasToCmScaleAndSetLetCornerAs00(Canvas canvas) {
+        private Matrix getMatrixCanvasToCmScaleAndSetLeftDownCornerAs00() {
             DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-            canvas.translate(0, displayMetrics.heightPixels);
-            canvas.scale(displayMetrics.xdpi / 2.54f, -displayMetrics.ydpi / 2.54f);
+            Matrix matrix = new Matrix();
+            matrix.setTranslate(0, displayMetrics.heightPixels);
+            matrix.preScale(displayMetrics.xdpi / 2.54f, -displayMetrics.ydpi / 2.54f);
+            return matrix;
         }
 
     }

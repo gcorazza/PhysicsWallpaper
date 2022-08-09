@@ -3,11 +3,13 @@ package com.example.physicswallpaper;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.util.DisplayMetrics;
 
-import com.example.physicswallpaper.Phunlet.dto.PhunletDAO;
-import com.example.physicswallpaper.Phunlet.draw.FixtureDraw;
-import com.example.physicswallpaper.Phunlet.PhunletBuilder;
+import com.example.physicswallpaper.phunlet.PhunletBody;
+import com.example.physicswallpaper.phunletDto.PhunletDtoBuilder;
+import com.example.physicswallpaper.phunletDto.PhunletBodyDto;
+import com.example.physicswallpaper.phunlet.draw.FixtureDraw;
 import com.example.physicswallpaper.WorldBuffer.ObjectRenderData;
 import com.example.physicswallpaper.WorldBuffer.WorldRenderData;
 
@@ -28,8 +30,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-import static com.example.physicswallpaper.Phunlet.PhunletBuilder.addRect;
-import static com.example.physicswallpaper.Phunlet.PhunletBuilder.createBody;
+import static com.example.physicswallpaper.phunlet.BodyBuilder.addRect;
+import static com.example.physicswallpaper.phunlet.BodyBuilder.createBody;
 
 
 public class PhysicsSimulation extends Thread implements ContactListener {
@@ -49,7 +51,10 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     private long lastPhysicsUpdate;
     private Vec2 gravity = new Vec2();
 
+    private final List<PhunletBody> phunlets = new ArrayList<>();
+
     public PhysicsSimulation(float sleep) {
+        super("Physics Simulation Thread");
         this.sleep = sleep;
         world = new World(new Vec2());
         world.setContactListener(this);
@@ -64,15 +69,21 @@ public class PhysicsSimulation extends Thread implements ContactListener {
 //            cross.addInWorld(world, new Vec2(i * 2, i * 2), (float) toDegrees(i * 10));
 //        }
 //        cross.addInWorld(world, new Vec2(2f, 2f), (float) toDegrees(45));
-        Body body = createBody(world, 5, 5, 0);
-        PhunletBuilder.addCircle(body, WHITE, 1, 10, new Vec2());
-        PhunletDAO phunletDAO = new PhunletDAO(body);
-        phunletDAO.save("circle");
+        PhunletBodyDto body = PhunletDtoBuilder.createBody();
+        PhunletDtoBuilder.addCircle(body, WHITE, 1, 10, new Vec2());
+        PhunletDtoBuilder.addCircle(body, WHITE, 0.5f, 10, new Vec2(4,0));
+        addPhunlet(body, new Vec2(5,5), 0);
+        body.save("circle");
         Random random = new Random();
         for (int i = 0; i < 10; i++) {
             addRandomBody(random);
         }
         setWalls();
+    }
+
+    public void addPhunlet(PhunletBodyDto phunletBodyDto, Vec2 pos, float angle){
+        PhunletBody phunletBody = phunletBodyDto.create(world, pos, angle);
+        phunlets.add(phunletBody);
     }
 
     @Override
@@ -107,21 +118,18 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         world.setGravity(gravity.add(accel));
         postSolves.forEach(postSolve -> processPostSolves(postSolve.contact, postSolve.contactImpulse));
         lastPhysicsUpdate = System.currentTimeMillis();
-        lastToShow = saveRenderDataFromWorld(world.getBodyList());
+        lastToShow = saveRenderDataFromWorld(phunlets);
     }
 
-    public WorldRenderData saveRenderDataFromWorld(Body bodyList) {
+    public static WorldRenderData saveRenderDataFromWorld(List<PhunletBody> bodyList) {
         List<ObjectRenderData> data = new ArrayList<>();
 
-        while (bodyList != null) {
-            Fixture fixtureList = bodyList.m_fixtureList;
-            while (fixtureList != null) {
-                FixtureDraw drawBody = (FixtureDraw) fixtureList.m_userData;
-                data.add(new ObjectRenderData(new Transform(drawBody.getBody().getTransform()), drawBody));
-                fixtureList = fixtureList.m_next;
-            }
-            bodyList = bodyList.m_next;
-        }
+        bodyList.forEach(phunletBody -> {
+            phunletBody.getPhunletFixtures().forEach(phunletFixture -> {
+                data.add(new ObjectRenderData(new Transform(phunletFixture.getPhunletFixture().getBody().getTransform()), phunletFixture.getPhunletFixtureDraw()));
+            });
+        });
+
         return new WorldRenderData(data);
     }
 
@@ -136,10 +144,14 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         return vr[0];
     }
 
-    public void draw(Canvas canvas) {
+    public void draw(Canvas canvas, Matrix myMatrix) {
+        if (lastToShow == null) {
+            return;
+        }
         canvas.drawColor(Color.BLACK);
 
         for (ObjectRenderData objectShowDatum : lastToShow.objectShowData) {
+            canvas.setMatrix(myMatrix);
             Transform transform = objectShowDatum.getTransform();
             objectShowDatum.getDrawBody().draw(canvas, transform);
         }
@@ -157,10 +169,9 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         float width = random.nextFloat() + 0.2f;
         float height = random.nextFloat() + 0.2f;
 
-        Body body = createBody(world, posX, posY, 0);
-        addRect(body, color, width, height, 5);
-        body.setBullet(true);
-        body.setSleepingAllowed(false);
+        PhunletBodyDto body = PhunletDtoBuilder.createBody();
+        PhunletDtoBuilder.addRect(body, color, width, height, 5);
+        addPhunlet(body, new Vec2(posX, posY), 0);
     }
 
     private int HSVToColor(float h, float s, float v) {
@@ -241,7 +252,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
 
     @Override
     public void postSolve(Contact contact, ContactImpulse impulse) {
-        postSolves.add(new PostSolve(contact, impulse));
+        //postSolves.add(new PostSolve(contact, impulse));
     }
 
     private class PostSolve {

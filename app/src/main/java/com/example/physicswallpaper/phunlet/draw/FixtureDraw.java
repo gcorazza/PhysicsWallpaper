@@ -1,4 +1,4 @@
-package com.example.physicswallpaper.Phunlet.draw;
+package com.example.physicswallpaper.phunlet.draw;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -6,18 +6,15 @@ import android.graphics.Paint;
 
 
 import org.jbox2d.common.Transform;
-import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.Fixture;
 
 public abstract class FixtureDraw {
     protected final Paint innerPaint = new Paint();
     protected final Paint outerPaint = new Paint();
-    private int color;
+    private final int color;
     protected final Fixture fixture;
     protected final float strokeWidth = 0.1f;
-    public Vec2 offset = new Vec2();
-    public float offAngle = 0;
 
     FixtureDraw(int color, Fixture fixture) {
         this.color = color;
@@ -81,14 +78,6 @@ public abstract class FixtureDraw {
 
     public Fixture getFixture() {
         return fixture;
-    }
-
-    public Vec2 getOffset() {
-        return offset;
-    }
-
-    public float getOffAngle() {
-        return offAngle;
     }
 
     public int getColor() {
