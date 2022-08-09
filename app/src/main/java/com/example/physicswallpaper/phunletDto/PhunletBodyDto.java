@@ -104,6 +104,6 @@ public class PhunletBodyDto implements Serializable {
                 = fixturesDto.stream()
                 .map(phunletFixtureDto -> phunletFixtureDto.create(body))
                 .collect(Collectors.toList());
-        return new PhunletBody(phunletFixtures);
+        return new PhunletBody(phunletFixtures, body);
     }
 }

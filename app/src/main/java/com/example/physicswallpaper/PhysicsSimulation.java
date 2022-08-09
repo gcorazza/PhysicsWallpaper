@@ -1,5 +1,8 @@
 package com.example.physicswallpaper;
 
+import static android.graphics.Color.BLACK;
+import static android.graphics.Color.LTGRAY;
+
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -24,6 +27,8 @@ import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.contacts.Contact;
+import org.jbox2d.dynamics.joints.Joint;
+import org.jbox2d.dynamics.joints.RevoluteJointDef;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +50,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     private final List<Vec2> moveAcceleration = Collections.synchronizedList(new ArrayList<>());
     private Vec2 lastMoveAcceleration = new Vec2();
     private final int WHITE = Color.rgb(255, 255, 255);
+    private final int GRAY = Color.rgb(127, 127, 127);
     private final List<PostSolve> postSolves = new ArrayList<>();
     private final int velocityIterations = 100;
     private final int positionIterations = 100;
@@ -70,20 +76,26 @@ public class PhysicsSimulation extends Thread implements ContactListener {
 //        }
 //        cross.addInWorld(world, new Vec2(2f, 2f), (float) toDegrees(45));
         PhunletBodyDto body = PhunletDtoBuilder.createBody();
-        PhunletDtoBuilder.addCircle(body, WHITE, 1, 10, new Vec2());
-        PhunletDtoBuilder.addCircle(body, WHITE, 0.5f, 10, new Vec2(4,0));
-        addPhunlet(body, new Vec2(5,5), 0);
-        body.save("circle");
-        Random random = new Random();
-        for (int i = 0; i < 10; i++) {
-            addRandomBody(random);
-        }
+        PhunletDtoBuilder.addCircle(body, GRAY, 1, 10, new Vec2());
+        PhunletDtoBuilder.addCircle(body, LTGRAY, 0.5f, 10, new Vec2(1.2f,0));
+        PhunletBody phunletBody1 = addPhunlet(body, new Vec2(5, 5), 90);
+        PhunletBody phunletBody2 = addPhunlet(body, new Vec2(5, 5), 0);
+
+
+        RevoluteJointDef def = new RevoluteJointDef();
+        def.initialize(phunletBody1.getBody(), phunletBody2.getBody(), new Vec2(5,5));
+        def.enableMotor = true;
+        def.motorSpeed = 10;
+        def.maxMotorTorque = 10000;
+        world.createJoint(def);
+
         setWalls();
     }
 
-    public void addPhunlet(PhunletBodyDto phunletBodyDto, Vec2 pos, float angle){
+    public PhunletBody addPhunlet(PhunletBodyDto phunletBodyDto, Vec2 pos, float angle){
         PhunletBody phunletBody = phunletBodyDto.create(world, pos, angle);
         phunlets.add(phunletBody);
+        return phunletBody;
     }
 
     @Override
@@ -148,7 +160,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         if (lastToShow == null) {
             return;
         }
-        canvas.drawColor(Color.BLACK);
+        canvas.drawColor(BLACK);
 
         for (ObjectRenderData objectShowDatum : lastToShow.objectShowData) {
             canvas.setMatrix(myMatrix);
