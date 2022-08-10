@@ -94,8 +94,8 @@ public class PhunletBodyDto implements Serializable {
         return new Gson().fromJson(json, PhunletBodyDto.class);
     }
 
-    public PhunletBody create(World world, Vec2 pos, float angle) {
-        Body body = createBody(world, pos, angle);
+    public PhunletBody create(World world, Vec2 pos, float degree) {
+        Body body = createBody(world, pos, degree);
         body.setBullet(bullet);
         body.setType(bodyType);
         body.setSleepingAllowed(allowSleeping);

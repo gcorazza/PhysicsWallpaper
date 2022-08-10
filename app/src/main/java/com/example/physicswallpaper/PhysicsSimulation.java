@@ -1,7 +1,6 @@
 package com.example.physicswallpaper;
 
 import static android.graphics.Color.BLACK;
-import static android.graphics.Color.LTGRAY;
 
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -9,12 +8,15 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.util.DisplayMetrics;
 
+import com.example.physicswallpaper.helper.PhunletMath;
+import com.example.physicswallpaper.phunletDto.machine.JointDto;
+import com.example.physicswallpaper.phunletDto.machine.MachineDto;
 import com.example.physicswallpaper.phunlet.PhunletBody;
 import com.example.physicswallpaper.phunletDto.PhunletDtoBuilder;
 import com.example.physicswallpaper.phunletDto.PhunletBodyDto;
-import com.example.physicswallpaper.phunlet.draw.FixtureDraw;
 import com.example.physicswallpaper.WorldBuffer.ObjectRenderData;
 import com.example.physicswallpaper.WorldBuffer.WorldRenderData;
+import com.example.physicswallpaper.phunletDto.machine.MachinePartDto;
 
 import org.jbox2d.callbacks.ContactImpulse;
 import org.jbox2d.callbacks.ContactListener;
@@ -24,17 +26,16 @@ import org.jbox2d.common.Transform;
 import org.jbox2d.common.Vec2;
 import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.Fixture;
 import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.contacts.Contact;
-import org.jbox2d.dynamics.joints.Joint;
-import org.jbox2d.dynamics.joints.RevoluteJointDef;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import static com.example.physicswallpaper.helper.PhunletMath.getMatrix;
+import static com.example.physicswallpaper.myMachines.MyMachines.cutie;
 import static com.example.physicswallpaper.phunlet.BodyBuilder.addRect;
 import static com.example.physicswallpaper.phunlet.BodyBuilder.createBody;
 
@@ -64,38 +65,45 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         this.sleep = sleep;
         world = new World(new Vec2());
         world.setContactListener(this);
-        /*
-        Body body = createBody(world, 2, 2, 0);
-        addRect(body, Color.BLUE, 1f, 0.3f, 5);
-        addRect(body, Color.BLUE, 0.3f, 1f, 5);
-        PhunletBodyDAO phunletBodyDAO = new PhunletBodyDAO(body);
-        phunletBodyDAO.save("cross");*/
-//        PhunletDAO cross = PhunletDAO.load("cross");
-//        for (int i = 0; i < 5; i++) {
-//            cross.addInWorld(world, new Vec2(i * 2, i * 2), (float) toDegrees(i * 10));
-//        }
-//        cross.addInWorld(world, new Vec2(2f, 2f), (float) toDegrees(45));
-        PhunletBodyDto body = PhunletDtoBuilder.createBody();
-        PhunletDtoBuilder.addCircle(body, GRAY, 1, 10, new Vec2());
-        PhunletDtoBuilder.addCircle(body, LTGRAY, 0.5f, 10, new Vec2(1.2f,0));
-        PhunletBody phunletBody1 = addPhunlet(body, new Vec2(5, 5), 90);
-        PhunletBody phunletBody2 = addPhunlet(body, new Vec2(5, 5), 0);
 
-
-        RevoluteJointDef def = new RevoluteJointDef();
-        def.initialize(phunletBody1.getBody(), phunletBody2.getBody(), new Vec2(5,5));
-        def.enableMotor = true;
-        def.motorSpeed = 10;
-        def.maxMotorTorque = 10000;
-        world.createJoint(def);
+        MachineDto cutie = cutie();
+        addMachine(cutie, new Vec2(0,8), 45);
+        addMachine(cutie, new Vec2(4,4), 90);
+        addMachine(cutie, new Vec2(0,0), 0);
+//        addMachine(cutie, new Vec2(5,5), 0);
 
         setWalls();
     }
 
-    public PhunletBody addPhunlet(PhunletBodyDto phunletBodyDto, Vec2 pos, float angle){
-        PhunletBody phunletBody = phunletBodyDto.create(world, pos, angle);
+    public PhunletBody addPhunlet(PhunletBodyDto phunletBodyDto, Vec2 pos, float degree){
+        PhunletBody phunletBody = phunletBodyDto.create(world, pos, degree);
         phunlets.add(phunletBody);
         return phunletBody;
+    }
+
+    public void addMachine(MachineDto machineDto, Vec2 pos, float degree){
+        List<MachinePartDto> machinePartDtos = machineDto.getMachinePartDtos();
+        List<PhunletBody> forJoints = new ArrayList<>();
+        for (int i = 0; i < machinePartDtos.size(); i++) {
+            Matrix machineCoord = getMatrix(pos, degree);
+            MachinePartDto machinePartDto = machinePartDtos.get(i);
+            Vec2 offset = machinePartDto.getOffset();
+            float offDegree = machinePartDto.getOffDegree();
+            Matrix partCoord = getMatrix(offset, offDegree);
+            partCoord.postConcat(machineCoord);
+            Vec2 endPos = PhunletMath.transformVec(partCoord, new Vec2(0, 0));
+            float degreeDst = PhunletMath.getMatrixRotationDegree(machineCoord);
+            PhunletBody phunletBody = addPhunlet(machinePartDto.getPhunletBodyDto(), endPos, degreeDst);
+            forJoints.add(phunletBody);
+        }
+
+        Matrix matrix = getMatrix(pos, degree);
+        for (JointDto jointDto : machineDto.getJointDtos()) {
+            Body bodyA = forJoints.get(jointDto.getBodyIndexA()).getBody();
+            Body bodyB = forJoints.get(jointDto.getBodyIndexB()).getBody();
+            jointDto.create(world, bodyA, bodyB, matrix);
+        }
+
     }
 
     @Override
@@ -209,7 +217,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         PolygonShape polygonShape = new PolygonShape();
         polygonShape.setAsBox(width, height);
         Body body = createBody(world, posX, posY, 0);
-        addRect(body, WHITE, width, height, 5);
+        addRect(body, width, height, 5);
         body.setType(BodyType.STATIC);
     }
 
