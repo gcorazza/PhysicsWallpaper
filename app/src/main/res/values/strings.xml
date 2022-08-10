@@ -2,4 +2,9 @@
     <string name="app_name">PhysicsWallpaper</string>
     <string name="setwallpaperActionString">Set Wallpaper!</string>
     <string name="button">Set Wallpaper!</string>
+    <string name="create_scene">Create Scene</string>
+    <string name="add_body">Add Body</string>
+    <string name="add_joint">Add Joint</string>
+    <string name="ready">Ready</string>
+    <string name="add_fixture">Add Fixture</string>
 </resources>

@@ -29,7 +29,7 @@
                 android:resource="@xml/wallpaperphysics" />
         </service>
         <activity
-            android:name="SetWallpaperActivity"
+            android:name=".activities.SetWallpaperActivity"
             android:exported="true">
 
             <intent-filter>
@@ -47,6 +47,11 @@
                     android:scheme="http" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".activities.SceneCreatorActivity"
+            android:label="Scene Creator"
+            android:parentActivityName=".activities.SetWallpaperActivity"
+            />
 
     </application>
 

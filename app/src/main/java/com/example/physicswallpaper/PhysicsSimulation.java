@@ -28,6 +28,7 @@ import org.jbox2d.dynamics.Body;
 import org.jbox2d.dynamics.BodyType;
 import org.jbox2d.dynamics.World;
 import org.jbox2d.dynamics.contacts.Contact;
+import org.jbox2d.dynamics.joints.Joint;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,8 +51,6 @@ public class PhysicsSimulation extends Thread implements ContactListener {
     private final int wallThickness = 3;
     private final List<Vec2> moveAcceleration = Collections.synchronizedList(new ArrayList<>());
     private Vec2 lastMoveAcceleration = new Vec2();
-    private final int WHITE = Color.rgb(255, 255, 255);
-    private final int GRAY = Color.rgb(127, 127, 127);
     private final List<PostSolve> postSolves = new ArrayList<>();
     private final int velocityIterations = 100;
     private final int positionIterations = 100;
@@ -68,9 +67,6 @@ public class PhysicsSimulation extends Thread implements ContactListener {
 
         MachineDto cutie = cutie();
         addMachine(cutie, new Vec2(0,8), 45);
-        addMachine(cutie, new Vec2(4,4), 90);
-        addMachine(cutie, new Vec2(0,0), 0);
-//        addMachine(cutie, new Vec2(5,5), 0);
 
         setWalls();
     }
@@ -101,7 +97,7 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         for (JointDto jointDto : machineDto.getJointDtos()) {
             Body bodyA = forJoints.get(jointDto.getBodyIndexA()).getBody();
             Body bodyB = forJoints.get(jointDto.getBodyIndexB()).getBody();
-            jointDto.create(world, bodyA, bodyB, matrix);
+            Joint joint = jointDto.create(world, bodyA, bodyB, matrix);
         }
 
     }
