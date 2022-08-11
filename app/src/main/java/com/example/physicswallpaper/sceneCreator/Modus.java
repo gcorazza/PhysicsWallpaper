@@ -1,10 +1,8 @@
-package com.example.physicswallpaper.activities.modi;
+package com.example.physicswallpaper.sceneCreator;
 
 import android.view.View;
 
-import com.example.physicswallpaper.activities.SceneCreatorActivity;
-
-public abstract class Modus implements View.OnTouchListener {
+public abstract class Modus implements View.OnTouchListener, Drawer {
     private final View header;
 
     protected Modus(SceneCreatorActivity sceneCreatorActivity, View header) {

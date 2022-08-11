@@ -48,7 +48,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activities.SceneCreatorActivity"
+        <activity android:name=".sceneCreator.SceneCreatorActivity"
             android:label="Scene Creator"
             android:parentActivityName=".activities.SetWallpaperActivity"
             />

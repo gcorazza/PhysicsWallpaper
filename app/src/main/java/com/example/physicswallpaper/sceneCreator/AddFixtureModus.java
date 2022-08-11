@@ -1,10 +1,10 @@
-package com.example.physicswallpaper.activities.modi;
+package com.example.physicswallpaper.sceneCreator;
 
+import android.graphics.Canvas;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.example.physicswallpaper.R;
-import com.example.physicswallpaper.activities.SceneCreatorActivity;
 
 public class AddFixtureModus extends Modus {
     public AddFixtureModus(SceneCreatorActivity sceneCreatorActivity, View header) {
@@ -21,5 +21,10 @@ public class AddFixtureModus extends Modus {
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         return false;
+    }
+
+    @Override
+    public void onDraw(Canvas canvas) {
+
     }
 }

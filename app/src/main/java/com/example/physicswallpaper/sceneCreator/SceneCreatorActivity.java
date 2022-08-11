@@ -1,4 +1,4 @@
-package com.example.physicswallpaper.activities;
+package com.example.physicswallpaper.sceneCreator;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -6,10 +6,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import com.example.physicswallpaper.R;
-import com.example.physicswallpaper.activities.modi.AddBodyModus;
-import com.example.physicswallpaper.activities.modi.AddFixtureModus;
-import com.example.physicswallpaper.activities.modi.Modus;
-import com.example.physicswallpaper.activities.modi.NothingModus;
 
 public class SceneCreatorActivity extends Activity {
 
@@ -24,12 +20,14 @@ public class SceneCreatorActivity extends Activity {
     public NothingModus nothingModus;
     public AddBodyModus addBodyModus;
     public AddFixtureModus addFixtureModus;
+    private SceneCreatorView sceneCreatorView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.create_scene);
 
+        sceneCreatorView = findViewById(R.id.sceneCreatorView);
         sceneCreatorFooter = findViewById(R.id.sceneCreatorFooter);
         sceneCreatorHeader = findViewById(R.id.sceneCreatorHeader);
 
@@ -52,6 +50,13 @@ public class SceneCreatorActivity extends Activity {
         actualModus = modus;
         sceneCreatorHeader.removeAllViews();
         sceneCreatorHeader.addView(modus.getHeader());
+        sceneCreatorView.setOnTouchListener((v, event) -> {
+            sceneCreatorView.invalidate(); //redraw
+            modus.onTouch(v, event);
+            return true;
+        });
+        sceneCreatorView.setDrawer(modus);
+        sceneCreatorView.invalidate(); //redraw
     }
 
 }

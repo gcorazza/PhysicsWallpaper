@@ -7,10 +7,10 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 
 import com.example.physicswallpaper.PhysicsWallpaperService;
 import com.example.physicswallpaper.R;
+import com.example.physicswallpaper.sceneCreator.SceneCreatorActivity;
 
 public class SetWallpaperActivity extends Activity {
     @Override
