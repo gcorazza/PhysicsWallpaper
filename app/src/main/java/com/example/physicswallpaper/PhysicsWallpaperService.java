@@ -174,13 +174,15 @@ public class PhysicsWallpaperService extends WallpaperService {
             }
         }
 
-        private Matrix getMatrixCanvasToCmScaleAndSetLeftDownCornerAs00() {
-            DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-            Matrix matrix = new Matrix();
-            matrix.setTranslate(0, displayMetrics.heightPixels);
-            matrix.preScale(displayMetrics.xdpi / 2.54f, -displayMetrics.ydpi / 2.54f);
-            return matrix;
-        }
 
+    }
+
+
+    public static Matrix getMatrixCanvasToCmScaleAndSetLeftDownCornerAs00() {
+        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
+        Matrix matrix = new Matrix();
+        matrix.setTranslate(0, displayMetrics.heightPixels);
+        matrix.preScale(displayMetrics.xdpi / 2.54f, -displayMetrics.ydpi / 2.54f);
+        return matrix;
     }
 }

@@ -9,8 +9,10 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+import com.example.physicswallpaper.PhysicsWallpaperService;
+
 public class SceneCreatorView extends View implements View.OnTouchListener {
-    Matrix matrix = new Matrix();
+    Matrix matrix = PhysicsWallpaperService.getMatrixCanvasToCmScaleAndSetLeftDownCornerAs00();
     private Drawer drawer;
 
     static final int NONE = 0;
@@ -32,11 +34,7 @@ public class SceneCreatorView extends View implements View.OnTouchListener {
         super.setClickable(true);
         this.context = context;
         mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
-        matrix.setTranslate(1f, 1f);
         m = new float[9];
-//        setImageMatrix(matrix);
-//        setScaleType(ScaleType.MATRIX);
-
     }
 
     @Override
@@ -50,14 +48,6 @@ public class SceneCreatorView extends View implements View.OnTouchListener {
     public void setDrawer(Drawer drawer) {
         this.drawer = drawer;
     }
-
-//    @Override
-//    public void setImageBitmap(Bitmap bm)
-//    {
-//        super.setImageBitmap(bm);
-//        bmWidth = bm.getWidth();
-//        bmHeight = bm.getHeight();
-//    }
 
 
     @Override
