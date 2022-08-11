@@ -1,15 +1,19 @@
 package com.example.physicswallpaper.sceneCreator;
 
 import android.app.Activity;
+import android.graphics.Canvas;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.LinearLayout;
 
 import com.example.physicswallpaper.R;
 
-public class SceneCreatorActivity extends Activity {
+import java.util.ArrayList;
+import java.util.List;
 
-    Modus actualModus;
+public class SceneCreatorActivity extends Activity implements Drawer {
+
+    List<Modus> modiStack = new ArrayList<>();
 
     View sceneCreatorFooter;
     LinearLayout sceneCreatorHeader;
@@ -42,13 +46,18 @@ public class SceneCreatorActivity extends Activity {
         addBodyModus = new AddBodyModus(this, addBodyHeader);
         addFixtureModus = new AddFixtureModus(this, addFixtureHeader);
 
-        setModus(nothingModus);
+        pushModus(nothingModus);
+        sceneCreatorView.setDrawer(this);
 
     }
 
-    public void setModus(Modus modus) {
-        actualModus = modus;
+    public void pushModus(Modus modus) {
+        modiStack.add(modus);
         modus.init();
+        setModus(modus);
+    }
+
+    private void setModus(Modus modus) {
         sceneCreatorHeader.removeAllViews();
         sceneCreatorHeader.addView(modus.getHeader());
         sceneCreatorView.setOnTouchListener((v, event) -> {
@@ -57,8 +66,18 @@ public class SceneCreatorActivity extends Activity {
             modus.onTouch(v, event);
             return true;
         });
-        sceneCreatorView.setDrawer(modus);
         sceneCreatorView.invalidate(); //redraw
     }
 
+    public void popModus() {
+        modiStack.remove(modiStack.size()-1);
+        setModus(modiStack.get(modiStack.size()-1));
+    }
+
+    @Override
+    public void onDraw(Canvas canvas) {
+        modiStack.forEach(modus -> {
+            modus.onDraw(canvas);
+        });
+    }
 }

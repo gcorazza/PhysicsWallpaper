@@ -1,5 +1,7 @@
 package com.example.physicswallpaper.sceneCreator;
 
+import static com.example.physicswallpaper.helper.Display.getMatrixCanvasToCmScaleAndSetLeftDownCornerAs00;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -12,7 +14,7 @@ import android.view.View;
 import com.example.physicswallpaper.PhysicsWallpaperService;
 
 public class SceneCreatorView extends View implements View.OnTouchListener {
-    Matrix matrix = PhysicsWallpaperService.getMatrixCanvasToCmScaleAndSetLeftDownCornerAs00();
+    Matrix matrix = getMatrixCanvasToCmScaleAndSetLeftDownCornerAs00();
     private Drawer drawer;
 
     static final int NONE = 0;

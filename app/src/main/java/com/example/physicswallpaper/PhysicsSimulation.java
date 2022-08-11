@@ -35,6 +35,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import static com.example.physicswallpaper.helper.Display.getScreenXcm;
+import static com.example.physicswallpaper.helper.Display.getScreenYcm;
 import static com.example.physicswallpaper.helper.PhunletMath.getMatrix;
 import static com.example.physicswallpaper.myMachines.MyMachines.cutie;
 import static com.example.physicswallpaper.phunlet.BodyBuilder.addRect;
@@ -215,16 +217,6 @@ public class PhysicsSimulation extends Thread implements ContactListener {
         Body body = createBody(world, posX, posY, 0);
         addRect(body, width, height, 5);
         body.setType(BodyType.STATIC);
-    }
-
-    private float getScreenXcm() {
-        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-        return ((float) displayMetrics.widthPixels) / displayMetrics.xdpi * 2.54f;
-    }
-
-    private float getScreenYcm() {
-        DisplayMetrics displayMetrics = Resources.getSystem().getDisplayMetrics();
-        return ((float) displayMetrics.heightPixels) / displayMetrics.ydpi * 2.54f;
     }
 
     public void touch(float x, float y) {

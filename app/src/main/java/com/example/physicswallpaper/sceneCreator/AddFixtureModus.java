@@ -11,9 +11,8 @@ public class AddFixtureModus extends Modus {
         super(sceneCreatorActivity, header);
         View readyBtn = header.findViewById(R.id.readyFixtureBtn);
 
-        readyBtn.setOnTouchListener((v, event) -> {
-            sceneCreatorActivity.setModus(sceneCreatorActivity.nothingModus);
-            return true;
+        readyBtn.setOnClickListener((view) -> {
+            sceneCreatorActivity.popModus();
         });
 
     }
@@ -30,6 +29,6 @@ public class AddFixtureModus extends Modus {
 
     @Override
     public void onDraw(Canvas canvas) {
-
+        drawScreenOutline(canvas);
     }
 }

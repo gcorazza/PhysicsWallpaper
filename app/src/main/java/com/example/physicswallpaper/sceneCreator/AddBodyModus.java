@@ -1,10 +1,11 @@
 package com.example.physicswallpaper.sceneCreator;
 
-import static com.example.physicswallpaper.helper.Stuff.testPaint;
-import static com.example.physicswallpaper.helper.Stuff.testPaint2;
+import static android.graphics.Color.MAGENTA;
+import static android.graphics.Color.RED;
 
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -17,6 +18,22 @@ public class AddBodyModus extends Modus {
     private final View addFixtureBtn;
     Vec2 bodyPos;
     Vec2 preBodyPos;
+    private static Paint coordPaint = coordPaint_();
+    private static Paint preCoordPaint = preCoordPaint_();
+
+    private static Paint coordPaint_() {
+        Paint coordPaint = new Paint();
+        coordPaint.setColor(RED);
+        coordPaint.setStrokeWidth(0.1f);
+        return coordPaint;
+    }
+
+    private static Paint preCoordPaint_() {
+        Paint coordPaint = new Paint();
+        coordPaint.setColor(MAGENTA);
+        coordPaint.setStrokeWidth(0.1f);
+        return coordPaint;
+    }
 
     public AddBodyModus(SceneCreatorActivity sceneCreatorActivity, View header) {
         super(sceneCreatorActivity, header);
@@ -27,14 +44,12 @@ public class AddBodyModus extends Modus {
         bodyPos = null;
         preBodyPos = null;
 
-        readyBtn.setOnTouchListener((v, event) -> {
-            sceneCreatorActivity.setModus(sceneCreatorActivity.nothingModus);
-            return true;
+        readyBtn.setOnClickListener((view) -> {
+            sceneCreatorActivity.popModus();
         });
 
-        addFixtureBtn.setOnTouchListener((v, event) -> {
-            sceneCreatorActivity.setModus(sceneCreatorActivity.addFixtureModus);
-            return true;
+        addFixtureBtn.setOnClickListener((view) -> {
+            sceneCreatorActivity.pushModus(sceneCreatorActivity.addFixtureModus);
         });
 
     }
@@ -79,8 +94,9 @@ public class AddBodyModus extends Modus {
     @Override
     public void onDraw(Canvas canvas) {
         if (bodyPos != null)
-            canvas.drawCircle(bodyPos.x, bodyPos.y, 20, testPaint);
+            drawCoord(canvas, bodyPos.x, bodyPos.y, coordPaint);
         if (preBodyPos != null)
-            canvas.drawCircle(preBodyPos.x, preBodyPos.y, 20, testPaint2);
+            drawCoord(canvas, preBodyPos.x, preBodyPos.y, preCoordPaint);
     }
+
 }

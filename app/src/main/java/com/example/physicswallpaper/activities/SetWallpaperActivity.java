@@ -18,10 +18,9 @@ public class SetWallpaperActivity extends Activity {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.setwallpaper);
-        findViewById(R.id.createSceneBtn).setOnTouchListener((v, event) -> {
+        findViewById(R.id.createSceneBtn).setOnClickListener((view) -> {
             Intent switchActivityIntent = new Intent(this, SceneCreatorActivity.class);
             startActivity(switchActivityIntent);
-            return true;
         });
     }
 
