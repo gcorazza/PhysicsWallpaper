@@ -22,6 +22,11 @@ public class NothingModus extends Modus{
     }
 
     @Override
+    public void init() {
+
+    }
+
+    @Override
     public boolean onTouch(View v, MotionEvent event) {
         return false;
     }

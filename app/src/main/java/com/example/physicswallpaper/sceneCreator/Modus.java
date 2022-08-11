@@ -12,4 +12,6 @@ public abstract class Modus implements View.OnTouchListener, Drawer {
     public View getHeader() {
         return header;
     }
+
+    public abstract void init();
 }

@@ -48,9 +48,11 @@ public class SceneCreatorActivity extends Activity {
 
     public void setModus(Modus modus) {
         actualModus = modus;
+        modus.init();
         sceneCreatorHeader.removeAllViews();
         sceneCreatorHeader.addView(modus.getHeader());
         sceneCreatorView.setOnTouchListener((v, event) -> {
+            sceneCreatorView.onTouch(v, event);
             sceneCreatorView.invalidate(); //redraw
             modus.onTouch(v, event);
             return true;

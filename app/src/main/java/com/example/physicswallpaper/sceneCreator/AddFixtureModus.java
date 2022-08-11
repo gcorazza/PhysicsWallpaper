@@ -19,6 +19,11 @@ public class AddFixtureModus extends Modus {
     }
 
     @Override
+    public void init() {
+
+    }
+
+    @Override
     public boolean onTouch(View v, MotionEvent event) {
         return false;
     }
