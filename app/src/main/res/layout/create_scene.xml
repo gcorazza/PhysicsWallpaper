@@ -19,7 +19,7 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/addCircle"
+                android:id="@+id/addCircleBtn"
                 style="?android:attr/buttonBarButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
@@ -27,7 +27,7 @@
                 android:text="Circle" />
 
             <Button
-                android:id="@+id/addRect"
+                android:id="@+id/addRectBtn"
                 style="?android:attr/buttonBarButtonStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"

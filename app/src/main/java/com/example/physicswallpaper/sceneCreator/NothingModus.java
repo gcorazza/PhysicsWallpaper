@@ -1,6 +1,5 @@
 package com.example.physicswallpaper.sceneCreator;
 
-import static com.example.physicswallpaper.helper.Stuff.testPaint;
 
 import android.graphics.Canvas;
 import android.view.MotionEvent;

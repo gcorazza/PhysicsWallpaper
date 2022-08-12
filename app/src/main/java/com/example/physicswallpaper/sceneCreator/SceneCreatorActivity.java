@@ -3,7 +3,9 @@ package com.example.physicswallpaper.sceneCreator;
 import android.app.Activity;
 import android.graphics.Canvas;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 
 import com.example.physicswallpaper.R;
@@ -49,6 +51,8 @@ public class SceneCreatorActivity extends Activity implements Drawer {
         pushModus(nothingModus);
         sceneCreatorView.setDrawer(this);
 
+        new View(this);
+
     }
 
     public void pushModus(Modus modus) {
@@ -79,5 +83,9 @@ public class SceneCreatorActivity extends Activity implements Drawer {
         modiStack.forEach(modus -> {
             modus.onDraw(canvas);
         });
+    }
+
+    public void redraw() {
+        sceneCreatorView.invalidate();
     }
 }
